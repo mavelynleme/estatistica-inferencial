@@ -21,7 +21,7 @@ export const hypothesisExamples = [
     pValue: 0.03,
     inputs: {},
     expectedConclusion:
-      'Como o p-valor é menor ou igual ao nível de significância, rejeita-se H₀. Portanto, a afirmação de que a dieta provoca uma perda média exatamente igual a 5 kg deve ser rejeitada com base nos dados.',
+      'Há evidência estatística para rejeitar a afirmação de perda média exatamente igual a 5 kg.',
     typeIExplanation:
       'Erro Tipo I neste contexto seria concluir que a dieta não tem efeito médio de 5 kg, rejeitando H₀, quando na verdade ela realmente tem esse efeito.',
     typeIIExplanation:
@@ -44,7 +44,7 @@ export const hypothesisExamples = [
     pValue: 0.125,
     inputs: {},
     expectedConclusion:
-      'Como o p-valor é maior que o nível de significância, não há evidência estatística suficiente para rejeitar H₀. Portanto, com base neste teste, o novo código não pode ser considerado estatisticamente mais rápido.',
+      'Não há evidência estatística suficiente para afirmar que o novo código é mais rápido.',
     typeIExplanation:
       'Erro Tipo I neste contexto seria concluir que o novo código é mais rápido, rejeitando H₀, quando na verdade o tempo médio real não é menor que 150 ms. A consequência prática seria aprovar uma otimização que não trouxe ganho real de performance.',
     typeIIExplanation:

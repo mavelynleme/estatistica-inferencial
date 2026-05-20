@@ -25,65 +25,54 @@ export function ManualDataImport({ onUseSample }) {
   const canUseSample = values.length > 1 && Number.isFinite(standardDeviation)
 
   return (
-    <section className="step-card subdued">
-      <div className="step-heading">
-        <span className="step-number">3</span>
-        <div>
-          <h2>Usar meus próprios dados</h2>
-          <p>
-            Cole valores numéricos separados por vírgula, ponto e vírgula,
-            espaço ou quebra de linha para preencher o teste T.
-          </p>
-        </div>
+    <div className="manual-inline-card">
+      <div className="field">
+        <label htmlFor="manualValues">Meus dados</label>
+        <textarea
+          id="manualValues"
+          value={rawValues}
+          onChange={(event) => setRawValues(event.target.value)}
+          placeholder="5,1; 4,8; 5,0; 5,3"
+        />
       </div>
-      <div className="manual-import-grid">
-        <div className="field">
-          <label htmlFor="manualValues">Valores amostrais</label>
-          <textarea
-            id="manualValues"
-            value={rawValues}
-            onChange={(event) => setRawValues(event.target.value)}
-            placeholder="5,1; 4,8; 5,0; 5,3"
-          />
-        </div>
-        <div className="manual-summary">
-          <span className="soft-badge">Preparação local</span>
-          <dl className="data-list">
-            <div className="data-row">
-              <dt>n</dt>
-              <dd>
-                <strong>{values.length}</strong>
-              </dd>
-            </div>
-            <div className="data-row">
-              <dt>Média amostral</dt>
-              <dd>
-                <strong>{formatNumber(mean, 6)}</strong>
-              </dd>
-            </div>
-            <div className="data-row">
-              <dt>Desvio padrão amostral</dt>
-              <dd>
-                <strong>{formatNumber(standardDeviation, 6)}</strong>
-              </dd>
-            </div>
-          </dl>
-          <button
-            className="secondary-button"
-            type="button"
-            disabled={!canUseSample}
-            onClick={() =>
-              onUseSample({
-                sampleSize: values.length,
-                sampleMean: mean,
-                sampleStandardDeviation: standardDeviation,
-              })
-            }
-          >
-            Enviar para teste T
-          </button>
-        </div>
+
+      <div className="manual-summary">
+        <span className="soft-badge">Resumo da amostra</span>
+        <dl className="data-list">
+          <div className="data-row">
+            <dt>n</dt>
+            <dd>
+              <strong>{values.length}</strong>
+            </dd>
+          </div>
+          <div className="data-row">
+            <dt>Média</dt>
+            <dd>
+              <strong>{formatNumber(mean, 6)}</strong>
+            </dd>
+          </div>
+          <div className="data-row">
+            <dt>Desvio padrão</dt>
+            <dd>
+              <strong>{formatNumber(standardDeviation, 6)}</strong>
+            </dd>
+          </div>
+        </dl>
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={!canUseSample}
+          onClick={() =>
+            onUseSample({
+              sampleSize: values.length,
+              sampleMean: mean,
+              sampleStandardDeviation: standardDeviation,
+            })
+          }
+        >
+          Usar no teste T
+        </button>
       </div>
-    </section>
+    </div>
   )
 }

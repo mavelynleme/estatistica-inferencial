@@ -4,7 +4,7 @@ export const irisSetosaPublicExample = {
   variable: 'sepal length of Iris setosa',
   example: {
     id: 'iris-dataset',
-    title: 'Dados públicos reais — Iris Dataset',
+    title: 'Dados reais — Iris Dataset',
     sourceLabel: 'UCI Machine Learning Repository — Iris Dataset',
     mode: 'calculated',
     testType: 'mean-t',
@@ -23,7 +23,7 @@ export const irisSetosaPublicExample = {
       sampleSize: 50,
     },
     expectedConclusion:
-      'Como o p-valor é maior que o nível de significância, não há evidência estatística suficiente para rejeitar H₀. Portanto, com base neste teste, não há diferença estatisticamente significativa entre a média observada e 5,0 cm.',
+      'Não há evidência estatística suficiente para afirmar que a média difere de 5,0 cm.',
     typeIExplanation:
       'Erro Tipo I neste contexto seria concluir que a média do comprimento da sépala difere de 5,0 cm, quando na verdade ela é igual a 5,0 cm.',
     typeIIExplanation:

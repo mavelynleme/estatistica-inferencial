@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
+import { hypothesisExamples } from '../../data/hypothesisExamples'
 import { ExampleSelector } from './ExampleSelector'
 import { HypothesisResult } from './HypothesisResult'
 import { ManualDataImport } from './ManualDataImport'
-import { PublicDataSources } from './PublicDataSources'
 import {
   buildDecision,
   buildHypotheses,
@@ -19,7 +19,7 @@ import {
 
 const initialForm = {
   mode: 'calculated',
-  testType: 'mean-z',
+  testType: 'mean-t',
   alternative: 'two-sided',
   parameter: 'μ',
   context: '',
@@ -35,63 +35,76 @@ const initialForm = {
 }
 
 const testTypeLabels = {
-  'mean-z': 'Teste Z para média — σ conhecido',
-  'mean-t': 'Teste T para média — σ desconhecido',
+  'mean-z': 'Teste Z para média',
+  'mean-t': 'Teste T para média',
   'proportion-z': 'Teste Z para proporção',
 }
 
 const alternativeLabels = {
-  'two-sided': 'Bilateral',
-  left: 'Unilateral à esquerda',
-  right: 'Unilateral à direita',
+  'two-sided': 'Teste bilateral',
+  left: 'Teste unilateral à esquerda',
+  right: 'Teste unilateral à direita',
 }
 
 function toInputValue(value) {
   return value === null || value === undefined ? '' : String(value).replace('.', ',')
 }
 
+function getFormula(form) {
+  if (form.mode === 'given-p-value') {
+    return 'Não há fórmula de estatística de teste nesta modalidade. O exercício já informa o p-valor.'
+  }
+
+  if (form.testType === 'mean-z') {
+    return 'z = (x̄ - μ₀) / (σ / √n)'
+  }
+
+  if (form.testType === 'mean-t') {
+    return 't = (x̄ - μ₀) / (s / √n), com gl = n - 1'
+  }
+
+  return 'z = (p̂ - p₀) / √((p₀(1 - p₀)) / n), com p̂ = x / n'
+}
+
 function buildRows(form, result) {
   const rows = [
-    ['Modo', form.mode === 'given-p-value' ? 'P-valor informado' : 'Calcular p-valor'],
-    ['Tipo de teste', form.mode === 'given-p-value' ? 'Comparação direta p-valor × α' : testTypeLabels[form.testType]],
-    ['Tipo de hipótese', alternativeLabels[form.alternative]],
-    ['Parâmetro', form.parameter],
+    ['Modo', form.mode === 'given-p-value' ? 'P-valor informado' : 'P-valor calculado'],
+    ['Teste', form.mode === 'given-p-value' ? 'Comparação p-valor × α' : testTypeLabels[form.testType]],
+    ['Hipótese alternativa', alternativeLabels[form.alternative]],
     ['Valor hipotético', `${formatNumber(result.hypothesizedValue, 6)}${form.unit ? ` ${form.unit}` : ''}`],
     ['α', formatNumber(result.alpha, 4)],
     ['p-valor', formatNumber(result.pValue, 6)],
   ]
 
-  if (form.context) rows.splice(3, 0, ['Contexto', form.context])
+  if (form.context) rows.unshift(['Contexto', form.context])
 
-  if (form.mode === 'calculated') {
-    if (form.testType === 'mean-z') {
-      rows.push(['x̄', formatNumber(result.inputs.sampleMean, 6)])
-      rows.push(['σ', formatNumber(result.inputs.populationStandardDeviation, 6)])
-      rows.push(['n', formatNumber(result.inputs.sampleSize, 0)])
-    }
+  if (form.mode === 'calculated' && form.testType === 'mean-z') {
+    rows.push(['Média amostral', formatNumber(result.inputs.sampleMean, 6)])
+    rows.push(['Desvio padrão populacional', formatNumber(result.inputs.populationStandardDeviation, 6)])
+    rows.push(['n', formatNumber(result.inputs.sampleSize, 0)])
+  }
 
-    if (form.testType === 'mean-t') {
-      rows.push(['x̄', formatNumber(result.inputs.sampleMean, 6)])
-      rows.push(['s', formatNumber(result.inputs.sampleStandardDeviation, 6)])
-      rows.push(['n', formatNumber(result.inputs.sampleSize, 0)])
-    }
+  if (form.mode === 'calculated' && form.testType === 'mean-t') {
+    rows.push(['Média amostral', formatNumber(result.inputs.sampleMean, 6)])
+    rows.push(['Desvio padrão amostral', formatNumber(result.inputs.sampleStandardDeviation, 6)])
+    rows.push(['n', formatNumber(result.inputs.sampleSize, 0)])
+  }
 
-    if (form.testType === 'proportion-z') {
-      rows.push(['x', formatNumber(result.inputs.successes, 0)])
-      rows.push(['n', formatNumber(result.inputs.sampleSize, 0)])
-      rows.push(['p̂', formatNumber(result.sampleProportion, 6)])
-    }
+  if (form.mode === 'calculated' && form.testType === 'proportion-z') {
+    rows.push(['Sucessos', formatNumber(result.inputs.successes, 0)])
+    rows.push(['n', formatNumber(result.inputs.sampleSize, 0)])
+    rows.push(['Proporção amostral', formatNumber(result.sampleProportion, 6)])
   }
 
   return rows.map(([label, value]) => ({ label, value }))
 }
 
 function getDefaultTypeI(form) {
-  return `Erro Tipo I: rejeitar H₀ quando H₀ é verdadeira. Neste contexto, seria concluir incorretamente que há evidência contra a hipótese sobre ${form.context || 'o parâmetro analisado'}.`
+  return `rejeitar H₀ quando H₀ é verdadeira no contexto de ${form.context || 'o parâmetro analisado'}.`
 }
 
 function getDefaultTypeII(form) {
-  return `Erro Tipo II: não rejeitar H₀ quando H₀ é falsa. Neste contexto, seria deixar de identificar uma diferença real em ${form.context || 'o parâmetro analisado'}.`
+  return `não rejeitar H₀ quando H₀ é falsa no contexto de ${form.context || 'o parâmetro analisado'}.`
 }
 
 export function HypothesisTestCalculator() {
@@ -100,27 +113,28 @@ export function HypothesisTestCalculator() {
   const [errors, setErrors] = useState([])
   const [warnings, setWarnings] = useState([])
   const [selectedExample, setSelectedExample] = useState(null)
-
-  const selectedModeLabel = useMemo(
-    () => (form.mode === 'given-p-value' ? 'P-valor informado' : 'Calcular p-valor'),
-    [form.mode],
-  )
+  const [selectedOption, setSelectedOption] = useState('manual')
 
   const updateField = (field, value) => {
     setForm((current) => {
       const next = { ...current, [field]: value }
-      if (field === 'mode' && value === 'given-p-value') {
-        next.parameter = current.parameter || 'μ'
-      }
-      if (field === 'testType' && value === 'proportion-z') {
-        next.parameter = 'p'
-      }
-      if (field === 'testType' && value !== 'proportion-z') {
-        next.parameter = 'μ'
-      }
+      if (field === 'testType' && value === 'proportion-z') next.parameter = 'p'
+      if (field === 'testType' && value !== 'proportion-z') next.parameter = 'μ'
       return next
     })
     setErrors([])
+  }
+
+  const selectManual = () => {
+    setSelectedOption('manual')
+    setSelectedExample(null)
+    setResult(null)
+    setForm((current) => ({
+      ...current,
+      mode: 'calculated',
+      testType: 'mean-t',
+      parameter: 'μ',
+    }))
   }
 
   const applyExample = (example) => {
@@ -142,24 +156,12 @@ export function HypothesisTestCalculator() {
       successes: toInputValue(example.inputs?.successes),
     }
 
+    setSelectedOption(example.id)
     setSelectedExample(example)
     setForm(nextForm)
     setErrors([])
     setWarnings([])
     setResult(buildResult(nextForm, example))
-  }
-
-  const validateBase = (parsed) => {
-    const nextErrors = []
-
-    if (!Number.isFinite(parsed.hypothesizedValue)) {
-      nextErrors.push('Informe um valor hipotético válido.')
-    }
-    if (!Number.isFinite(parsed.alpha) || parsed.alpha <= 0 || parsed.alpha >= 1) {
-      nextErrors.push('α deve estar entre 0 e 1.')
-    }
-
-    return nextErrors
   }
 
   const parseForm = (targetForm) => ({
@@ -173,6 +175,17 @@ export function HypothesisTestCalculator() {
     pValue: parseNumericInput(targetForm.pValue),
   })
 
+  const validateBase = (parsed) => {
+    const nextErrors = []
+    if (!Number.isFinite(parsed.hypothesizedValue)) {
+      nextErrors.push('Informe um valor hipotético válido.')
+    }
+    if (!Number.isFinite(parsed.alpha) || parsed.alpha <= 0 || parsed.alpha >= 1) {
+      nextErrors.push('α deve estar entre 0 e 1.')
+    }
+    return nextErrors
+  }
+
   const validateCalculated = (targetForm, parsed) => {
     const nextErrors = []
     const nextWarnings = []
@@ -183,20 +196,14 @@ export function HypothesisTestCalculator() {
 
     if (targetForm.testType === 'mean-z') {
       if (!Number.isFinite(parsed.sampleMean)) nextErrors.push('Informe uma média amostral válida.')
-      if (
-        !Number.isFinite(parsed.populationStandardDeviation) ||
-        parsed.populationStandardDeviation <= 0
-      ) {
+      if (!Number.isFinite(parsed.populationStandardDeviation) || parsed.populationStandardDeviation <= 0) {
         nextErrors.push('o desvio padrão deve ser maior que 0.')
       }
     }
 
     if (targetForm.testType === 'mean-t') {
       if (!Number.isFinite(parsed.sampleMean)) nextErrors.push('Informe uma média amostral válida.')
-      if (
-        !Number.isFinite(parsed.sampleStandardDeviation) ||
-        parsed.sampleStandardDeviation <= 0
-      ) {
+      if (!Number.isFinite(parsed.sampleStandardDeviation) || parsed.sampleStandardDeviation <= 0) {
         nextErrors.push('o desvio padrão deve ser maior que 0.')
       }
     }
@@ -205,11 +212,7 @@ export function HypothesisTestCalculator() {
       if (parsed.hypothesizedValue <= 0 || parsed.hypothesizedValue >= 1) {
         nextErrors.push('p₀ deve estar entre 0 e 1.')
       }
-      if (
-        !Number.isFinite(parsed.successes) ||
-        parsed.successes < 0 ||
-        parsed.successes > parsed.sampleSize
-      ) {
+      if (!Number.isFinite(parsed.successes) || parsed.successes < 0 || parsed.successes > parsed.sampleSize) {
         nextErrors.push('x deve estar entre 0 e n.')
       }
       if (
@@ -246,13 +249,13 @@ export function HypothesisTestCalculator() {
       return null
     }
 
-    let testResult
     const common = {
       hypothesizedValue: parsed.hypothesizedValue,
       alpha: parsed.alpha,
       alternative: targetForm.alternative,
     }
 
+    let testResult
     if (targetForm.mode === 'given-p-value') {
       testResult = calculateGivenPValueDecision({
         pValue: parsed.pValue,
@@ -290,6 +293,7 @@ export function HypothesisTestCalculator() {
       inputs: parsed,
       parameter: targetForm.parameter,
       sampleProportion: testResult.sampleProportion,
+      formula: getFormula(targetForm),
       hypotheses: buildHypotheses({
         parameter: targetForm.parameter,
         hypothesizedValue: parsed.hypothesizedValue,
@@ -307,7 +311,6 @@ export function HypothesisTestCalculator() {
     }
 
     resultObject.dataRows = buildRows(targetForm, resultObject)
-
     setErrors([])
     setWarnings(nextWarnings)
     return resultObject
@@ -315,12 +318,11 @@ export function HypothesisTestCalculator() {
 
   const calculate = (event) => {
     event.preventDefault()
-    setSelectedExample((current) => current)
-    const nextResult = buildResult(form)
-    setResult(nextResult)
+    setResult(buildResult(form, selectedExample))
   }
 
   const useManualSample = ({ sampleSize, sampleMean, sampleStandardDeviation }) => {
+    setSelectedOption('manual')
     setSelectedExample(null)
     setResult(null)
     setForm((current) => ({
@@ -336,321 +338,226 @@ export function HypothesisTestCalculator() {
 
   return (
     <>
-      <section className="hero-band">
-        <div className="page-section hero-content">
-          <div>
+      <section className="inferential-minimal">
+        <div className="page-section narrow-flow">
+          <div className="minimal-page-heading">
             <p className="eyebrow">Estatística Inferencial</p>
             <h1>Teste de Hipóteses com P-Valor</h1>
-            <p className="hero-text">
-              Calcule a estatística de teste, o p-valor e a decisão sobre H₀ com
-              base no nível de significância.
-            </p>
+            <p>Calcule, compare e interprete o p-valor com clareza.</p>
           </div>
-          <div className="stat-visual" aria-hidden="true">
-            <div className="curve">
-              <span className="curve-marker" />
-            </div>
-            <div className="visual-grid">
-              <span className="mini-stat">
-                <strong>{selectedModeLabel}</strong>
-                modo
-              </span>
-              <span className="mini-stat">
-                <strong>H₀</strong>
-                hipótese
-              </span>
-              <span className="mini-stat">
-                <strong>p ≤ α</strong>
-                regra
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="page-section">
-        <div className="section-header">
-          <p className="eyebrow">Fluxo guiado</p>
-          <h2>Calculadora Inferencial</h2>
-          <p className="section-subtitle">
-            Siga as etapas para selecionar o modo, carregar um exemplo ou
-            preencher os dados manualmente.
-          </p>
-        </div>
-
-        <div className="calculator-flow">
-          <section className="step-card">
-            <div className="step-heading">
-              <span className="step-number">1</span>
-              <div>
-                <h2>Escolha o modo</h2>
-                <p>
-                  Calcule o p-valor a partir dos dados ou resolva exercícios em
-                  que o p-valor já foi informado.
-                </p>
-              </div>
-            </div>
-            <div className="mode-tabs" role="group" aria-label="Modo da calculadora">
-              <button
-                className={`mode-tab ${form.mode === 'calculated' ? 'active' : ''}`}
-                type="button"
-                onClick={() => updateField('mode', 'calculated')}
-              >
-                Calcular p-valor
-              </button>
-              <button
-                className={`mode-tab ${form.mode === 'given-p-value' ? 'active' : ''}`}
-                type="button"
-                onClick={() => updateField('mode', 'given-p-value')}
-              >
-                P-valor informado
-              </button>
-            </div>
-          </section>
 
           <ExampleSelector
             selectedExampleId={selectedExample?.id}
+            selectedOption={selectedOption}
             onSelectExample={applyExample}
+            onSelectManual={selectManual}
           />
 
-          <ManualDataImport onUseSample={useManualSample} />
-
-          <form className="step-card calculator-panel" onSubmit={calculate}>
-            <div className="step-heading">
-              <span className="step-number">4</span>
-              <div>
-                <h2>Preencha os dados e calcule</h2>
-                <p>
-                  O formulário mostra apenas os campos relevantes para o modo e
-                  o teste selecionados.
-                </p>
-              </div>
+          <section className="flow-section">
+            <div className="flow-heading">
+              <h2>2. Informe os dados</h2>
+              <span className="soft-badge">
+                {form.mode === 'given-p-value' ? 'P-valor informado' : 'P-valor calculado'}
+              </span>
             </div>
 
-            {selectedExample ? (
-              <div className="loaded-example">
-                <span className="badge">{selectedExample.sourceLabel}</span>
-                <span>{selectedExample.title} carregado</span>
-              </div>
+            {selectedOption === 'manual' ? (
+              <ManualDataImport onUseSample={useManualSample} />
             ) : null}
 
-            <div className="form-grid">
-              {form.mode === 'calculated' ? (
+            <form className="soft-form-card" onSubmit={calculate}>
+              <div className="form-grid compact-form">
+                {form.mode === 'given-p-value' ? (
+                  <div className="field span-2">
+                    <label htmlFor="context">Contexto</label>
+                    <textarea
+                      id="context"
+                      value={form.context}
+                      onChange={(event) => updateField('context', event.target.value)}
+                    />
+                  </div>
+                ) : (
+                  <div className="field">
+                    <label htmlFor="testType">Tipo de teste</label>
+                    <select
+                      id="testType"
+                      value={form.testType}
+                      onChange={(event) => updateField('testType', event.target.value)}
+                    >
+                      <option value="mean-z">Teste Z para média</option>
+                      <option value="mean-t">Teste T para média</option>
+                      <option value="proportion-z">Teste Z para proporção</option>
+                    </select>
+                  </div>
+                )}
+
                 <div className="field">
-                  <label htmlFor="testType">Tipo de teste</label>
+                  <label htmlFor="hypothesizedValue">
+                    {form.parameter === 'p' ? 'Proporção hipotética' : 'Média hipotética'}
+                  </label>
+                  <input
+                    id="hypothesizedValue"
+                    value={form.hypothesizedValue}
+                    onChange={(event) => updateField('hypothesizedValue', event.target.value)}
+                    placeholder={form.parameter === 'p' ? '0,50' : '5'}
+                  />
+                </div>
+
+                <div className="field">
+                  <label htmlFor="alternative">
+                    {form.mode === 'given-p-value'
+                      ? 'Tipo de teste'
+                      : 'Hipótese alternativa'}
+                  </label>
                   <select
-                    id="testType"
-                    value={form.testType}
-                    onChange={(event) => updateField('testType', event.target.value)}
+                    id="alternative"
+                    value={form.alternative}
+                    onChange={(event) => updateField('alternative', event.target.value)}
                   >
-                    <option value="mean-z">Teste Z para média — σ conhecido</option>
-                    <option value="mean-t">Teste T para média — σ desconhecido</option>
-                    <option value="proportion-z">Teste Z para proporção</option>
+                    <option value="two-sided">bilateral</option>
+                    <option value="left">unilateral à esquerda</option>
+                    <option value="right">unilateral à direita</option>
                   </select>
-                  <small>
-                    Use Z quando σ populacional é conhecido; use T quando σ é
-                    estimado pela amostra.
-                  </small>
                 </div>
-              ) : (
-                <div className="field span-2">
-                  <label htmlFor="context">Contexto do problema</label>
-                  <textarea
-                    id="context"
-                    value={form.context}
-                    onChange={(event) => updateField('context', event.target.value)}
+
+                <div className="field">
+                  <label htmlFor="alpha">α</label>
+                  <input
+                    id="alpha"
+                    value={form.alpha}
+                    onChange={(event) => updateField('alpha', event.target.value)}
+                    placeholder="0,05 ou 5%"
                   />
                 </div>
-              )}
 
-            <div className="field">
-              <label htmlFor="alternative">Tipo de teste</label>
-              <select
-                id="alternative"
-                value={form.alternative}
-                onChange={(event) => updateField('alternative', event.target.value)}
-              >
-                <option value="two-sided">bilateral</option>
-                <option value="left">unilateral à esquerda</option>
-                <option value="right">unilateral à direita</option>
-              </select>
-            </div>
+                {form.mode === 'given-p-value' ? (
+                  <div className="field">
+                    <label htmlFor="pValue">p-valor</label>
+                    <input
+                      id="pValue"
+                      value={form.pValue}
+                      onChange={(event) => updateField('pValue', event.target.value)}
+                      placeholder="0,125"
+                    />
+                  </div>
+                ) : null}
 
-            {form.mode === 'given-p-value' ? (
-              <div className="field">
-                <label htmlFor="parameter">Parâmetro</label>
-                <select
-                  id="parameter"
-                  value={form.parameter}
-                  onChange={(event) => updateField('parameter', event.target.value)}
+                {form.mode === 'calculated' && form.testType !== 'proportion-z' ? (
+                  <>
+                    <div className="field">
+                      <label htmlFor="sampleMean">Média amostral</label>
+                      <input
+                        id="sampleMean"
+                        value={form.sampleMean}
+                        onChange={(event) => updateField('sampleMean', event.target.value)}
+                        placeholder="5,006"
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="sampleSize">n</label>
+                      <input
+                        id="sampleSize"
+                        value={form.sampleSize}
+                        onChange={(event) => updateField('sampleSize', event.target.value)}
+                        placeholder="50"
+                      />
+                    </div>
+                  </>
+                ) : null}
+
+                {form.mode === 'calculated' && form.testType === 'mean-z' ? (
+                  <div className="field">
+                    <label htmlFor="populationStandardDeviation">Desvio padrão populacional</label>
+                    <input
+                      id="populationStandardDeviation"
+                      value={form.populationStandardDeviation}
+                      onChange={(event) =>
+                        updateField('populationStandardDeviation', event.target.value)
+                      }
+                      placeholder="2,4"
+                    />
+                  </div>
+                ) : null}
+
+                {form.mode === 'calculated' && form.testType === 'mean-t' ? (
+                  <div className="field">
+                    <label htmlFor="sampleStandardDeviation">Desvio padrão amostral</label>
+                    <input
+                      id="sampleStandardDeviation"
+                      value={form.sampleStandardDeviation}
+                      onChange={(event) =>
+                        updateField('sampleStandardDeviation', event.target.value)
+                      }
+                      placeholder="0,3525"
+                    />
+                  </div>
+                ) : null}
+
+                {form.mode === 'calculated' && form.testType === 'proportion-z' ? (
+                  <>
+                    <div className="field">
+                      <label htmlFor="successes">Sucessos</label>
+                      <input
+                        id="successes"
+                        value={form.successes}
+                        onChange={(event) => updateField('successes', event.target.value)}
+                        placeholder="42"
+                      />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="sampleSizeProportion">n</label>
+                      <input
+                        id="sampleSizeProportion"
+                        value={form.sampleSize}
+                        onChange={(event) => updateField('sampleSize', event.target.value)}
+                        placeholder="100"
+                      />
+                    </div>
+                  </>
+                ) : null}
+              </div>
+
+              {errors.length > 0 ? (
+                <ul className="error-list">
+                  {errors.map((error) => (
+                    <li key={error}>{error}</li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {warnings.length > 0 ? (
+                <ul className="warning-list">
+                  {warnings.map((warning) => (
+                    <li key={warning}>{warning}</li>
+                  ))}
+                </ul>
+              ) : null}
+
+              <div className="form-actions">
+                <button className="primary-button" type="submit">
+                  Calcular
+                </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  onClick={() => {
+                    setForm(initialForm)
+                    setSelectedOption('manual')
+                    setSelectedExample(null)
+                    setResult(null)
+                    setErrors([])
+                    setWarnings([])
+                  }}
                 >
-                  <option value="μ">μ</option>
-                  <option value="p">p</option>
-                </select>
+                  Limpar
+                </button>
               </div>
-            ) : null}
+            </form>
+          </section>
 
-            <div className="field">
-              <label htmlFor="hypothesizedValue">
-                {form.parameter === 'p' ? 'p₀: proporção hipotética' : 'μ₀: média hipotética'}
-              </label>
-              <input
-                id="hypothesizedValue"
-                value={form.hypothesizedValue}
-                onChange={(event) => updateField('hypothesizedValue', event.target.value)}
-                placeholder={form.parameter === 'p' ? '0,50' : '5'}
-              />
-            </div>
-
-            <div className="field">
-              <label htmlFor="unit">Unidade</label>
-              <input
-                id="unit"
-                value={form.unit}
-                onChange={(event) => updateField('unit', event.target.value)}
-                placeholder="kg, ms, cm..."
-              />
-            </div>
-
-            <div className="field">
-              <label htmlFor="alpha">α: nível de significância</label>
-              <input
-                id="alpha"
-                value={form.alpha}
-                onChange={(event) => updateField('alpha', event.target.value)}
-                placeholder="0,05 ou 5%"
-              />
-            </div>
-
-            {form.mode === 'given-p-value' ? (
-              <div className="field">
-                <label htmlFor="pValue">p-valor informado</label>
-                <input
-                  id="pValue"
-                  value={form.pValue}
-                  onChange={(event) => updateField('pValue', event.target.value)}
-                  placeholder="0,125"
-                />
-              </div>
-            ) : null}
-
-            {form.mode === 'calculated' && form.testType !== 'proportion-z' ? (
-              <>
-                <div className="field">
-                  <label htmlFor="sampleMean">x̄: média amostral</label>
-                  <input
-                    id="sampleMean"
-                    value={form.sampleMean}
-                    onChange={(event) => updateField('sampleMean', event.target.value)}
-                    placeholder="5,006"
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="sampleSize">n: tamanho da amostra</label>
-                  <input
-                    id="sampleSize"
-                    value={form.sampleSize}
-                    onChange={(event) => updateField('sampleSize', event.target.value)}
-                    placeholder="50"
-                  />
-                </div>
-              </>
-            ) : null}
-
-            {form.mode === 'calculated' && form.testType === 'mean-z' ? (
-              <div className="field">
-                <label htmlFor="populationStandardDeviation">
-                  σ: desvio padrão populacional
-                </label>
-                <input
-                  id="populationStandardDeviation"
-                  value={form.populationStandardDeviation}
-                  onChange={(event) =>
-                    updateField('populationStandardDeviation', event.target.value)
-                  }
-                  placeholder="2,4"
-                />
-              </div>
-            ) : null}
-
-            {form.mode === 'calculated' && form.testType === 'mean-t' ? (
-              <div className="field">
-                <label htmlFor="sampleStandardDeviation">s: desvio padrão amostral</label>
-                <input
-                  id="sampleStandardDeviation"
-                  value={form.sampleStandardDeviation}
-                  onChange={(event) =>
-                    updateField('sampleStandardDeviation', event.target.value)
-                  }
-                  placeholder="0,3525"
-                />
-              </div>
-            ) : null}
-
-            {form.mode === 'calculated' && form.testType === 'proportion-z' ? (
-              <>
-                <div className="field">
-                  <label htmlFor="successes">x: número de sucessos</label>
-                  <input
-                    id="successes"
-                    value={form.successes}
-                    onChange={(event) => updateField('successes', event.target.value)}
-                    placeholder="42"
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="sampleSizeProportion">n: tamanho da amostra</label>
-                  <input
-                    id="sampleSizeProportion"
-                    value={form.sampleSize}
-                    onChange={(event) => updateField('sampleSize', event.target.value)}
-                    placeholder="100"
-                  />
-                </div>
-              </>
-            ) : null}
-            </div>
-
-            {errors.length > 0 ? (
-              <ul className="error-list">
-                {errors.map((error) => (
-                  <li key={error}>{error}</li>
-                ))}
-              </ul>
-            ) : null}
-
-            {warnings.length > 0 ? (
-              <ul className="warning-list">
-                {warnings.map((warning) => (
-                  <li key={warning}>{warning}</li>
-                ))}
-              </ul>
-            ) : null}
-
-            <div className="form-actions">
-              <button className="primary-button" type="submit">
-                Calcular
-              </button>
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={() => {
-                  setForm(initialForm)
-                  setSelectedExample(null)
-                  setResult(null)
-                  setErrors([])
-                  setWarnings([])
-                }}
-              >
-                Limpar
-              </button>
-            </div>
-          </form>
+          <HypothesisResult result={result} />
         </div>
       </section>
-
-      <HypothesisResult result={result} />
-      <PublicDataSources />
     </>
   )
 }

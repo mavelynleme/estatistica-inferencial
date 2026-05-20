@@ -15,83 +15,91 @@ function DataRows({ rows }) {
   )
 }
 
+function ResultDetail({ title, children }) {
+  return (
+    <details className="detail-panel">
+      <summary>{title}</summary>
+      <div className="detail-content">{children}</div>
+    </details>
+  )
+}
+
 export function HypothesisResult({ result }) {
   if (!result) return null
 
   const decisionClass = result.decision.rejectNull ? 'decision-reject' : 'decision-keep'
 
   return (
-    <section className="page-section">
-      <div className="section-header">
-        <p className="eyebrow">Etapa 5</p>
-        <h2>Veja a interpretação</h2>
-        <p className="section-subtitle">
-          Leitura estatística organizada para apresentação acadêmica.
-        </p>
+    <section className="flow-section result-section">
+      <div className="flow-heading">
+        <h2>3. Resultado</h2>
+        <span className="soft-badge">Interpretação final</span>
       </div>
-      <div className="result-grid">
-        <article className="result-card">
-          <h3>Hipóteses</h3>
+
+      <article className="compact-result-card">
+        <div className="result-metrics">
+          <div>
+            <span>p-valor</span>
+            <strong>{formatNumber(result.pValue, 6)}</strong>
+          </div>
+          <div>
+            <span>α</span>
+            <strong>{formatNumber(result.alpha, 4)}</strong>
+          </div>
+        </div>
+
+        <div className="decision-block">
+          <span>Decisão</span>
+          <strong className={decisionClass}>{result.decision.label}</strong>
+        </div>
+
+        <div className="conclusion compact">
+          <span>Conclusão</span>
+          <p>{result.interpretation}</p>
+        </div>
+      </article>
+
+      <div className="details-stack">
+        <ResultDetail title="Ver hipóteses">
           <div className="hypotheses">
             <span>{result.hypotheses.nullHypothesis}</span>
             <span>{result.hypotheses.alternativeHypothesis}</span>
           </div>
-        </article>
+        </ResultDetail>
 
-        <article className="result-card">
-          <h3>Dados utilizados</h3>
+        <ResultDetail title="Ver dados utilizados">
           <DataRows rows={result.dataRows} />
-        </article>
+        </ResultDetail>
 
-        <article className="result-card">
-          <h3>Estatística de teste</h3>
+        <ResultDetail title="Ver estatística de teste">
           {result.statisticLabel === 'Não se aplica' ? (
-            <p>Não se aplica — exercício com p-valor informado.</p>
+            <p>Não se aplica, pois este exercício já informa o p-valor.</p>
           ) : (
             <>
-              <p className="result-value">
-                {result.statisticLabel} = {formatNumber(result.statistic, 6)}
+              <p>
+                <strong>{result.statisticLabel}</strong> ={' '}
+                {formatNumber(result.statistic, 6)}
               </p>
               {result.degreesOfFreedom ? (
                 <p>Graus de liberdade: {result.degreesOfFreedom}</p>
               ) : null}
             </>
           )}
-        </article>
+        </ResultDetail>
 
-        <article className="result-card highlight">
-          <h3>P-Valor</h3>
-          <p className="result-value">{formatNumber(result.pValue, 6)}</p>
-          <p>α = {formatNumber(result.alpha, 4)}</p>
-        </article>
+        <ResultDetail title="Ver fórmula">
+          <p>{result.formula}</p>
+        </ResultDetail>
 
-        <article className="result-card">
-          <h3>Regra de decisão</h3>
+        <ResultDetail title="Ver regra de decisão">
           <p>Se p-valor ≤ α, rejeita-se H₀.</p>
           <p>Se p-valor &gt; α, não se rejeita H₀.</p>
-          <p className={decisionClass}>
-            <strong>{result.decision.label}</strong>
-          </p>
-        </article>
+        </ResultDetail>
 
-        <article className="result-card highlight">
-          <h3>Conclusão</h3>
-          <p className="conclusion">{result.interpretation}</p>
-        </article>
-
-        <article className="result-card details-card">
-          <details>
-            <summary>Erro Tipo I</summary>
-            <p>{result.typeIExplanation}</p>
-          </details>
-        </article>
-
-        <article className="result-card details-card">
-          <details>
-            <summary>Erro Tipo II</summary>
-            <p>{result.typeIIExplanation}</p>
-          </details>
-        </article>
+        <ResultDetail title="Ver erro Tipo I e Tipo II">
+          <p>{result.typeIExplanation}</p>
+          <p>{result.typeIIExplanation}</p>
+        </ResultDetail>
       </div>
     </section>
   )
