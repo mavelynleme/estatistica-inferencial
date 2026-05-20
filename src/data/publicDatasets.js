@@ -4,7 +4,7 @@ export const irisSetosaPublicExample = {
   variable: 'sepal length of Iris setosa',
   example: {
     id: 'iris-dataset',
-    title: 'Dados reais — Iris Dataset',
+    title: 'Dados públicos reais — Iris Dataset',
     sourceLabel: 'UCI Machine Learning Repository — Iris Dataset',
     mode: 'calculated',
     testType: 'mean-t',

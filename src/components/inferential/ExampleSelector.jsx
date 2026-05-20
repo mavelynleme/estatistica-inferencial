@@ -9,7 +9,7 @@ const optionOrder = [
 
 function shortTitle(example) {
   if (example.id === 'tarefa-8-microsservico') return 'Tarefa 8 — Microsserviço'
-  if (example.id === 'iris-dataset') return 'Dados reais — Iris Dataset'
+  if (example.id === 'iris-dataset') return 'Dados públicos reais — Iris Dataset'
   return example.title
 }
 
