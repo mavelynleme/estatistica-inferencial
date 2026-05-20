@@ -23,7 +23,8 @@ export function HypothesisResult({ result }) {
   return (
     <section className="page-section">
       <div className="section-header">
-        <h2>Resultado do Teste</h2>
+        <p className="eyebrow">Etapa 5</p>
+        <h2>Veja a interpretação</h2>
         <p className="section-subtitle">
           Leitura estatística organizada para apresentação acadêmica.
         </p>
@@ -78,14 +79,18 @@ export function HypothesisResult({ result }) {
           <p className="conclusion">{result.interpretation}</p>
         </article>
 
-        <article className="result-card">
-          <h3>Erro Tipo I</h3>
-          <p>{result.typeIExplanation}</p>
+        <article className="result-card details-card">
+          <details>
+            <summary>Erro Tipo I</summary>
+            <p>{result.typeIExplanation}</p>
+          </details>
         </article>
 
-        <article className="result-card">
-          <h3>Erro Tipo II</h3>
-          <p>{result.typeIIExplanation}</p>
+        <article className="result-card details-card">
+          <details>
+            <summary>Erro Tipo II</summary>
+            <p>{result.typeIIExplanation}</p>
+          </details>
         </article>
       </div>
     </section>

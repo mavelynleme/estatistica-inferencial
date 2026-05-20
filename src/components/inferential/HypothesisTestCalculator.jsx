@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { ExampleSelector } from './ExampleSelector'
 import { HypothesisResult } from './HypothesisResult'
+import { ManualDataImport } from './ManualDataImport'
+import { PublicDataSources } from './PublicDataSources'
 import {
   buildDecision,
   buildHypotheses,
@@ -318,6 +320,20 @@ export function HypothesisTestCalculator() {
     setResult(nextResult)
   }
 
+  const useManualSample = ({ sampleSize, sampleMean, sampleStandardDeviation }) => {
+    setSelectedExample(null)
+    setResult(null)
+    setForm((current) => ({
+      ...current,
+      mode: 'calculated',
+      testType: 'mean-t',
+      parameter: 'μ',
+      sampleSize: toInputValue(sampleSize),
+      sampleMean: toInputValue(Number(sampleMean.toFixed(6))),
+      sampleStandardDeviation: toInputValue(Number(sampleStandardDeviation.toFixed(6))),
+    }))
+  }
+
   return (
     <>
       <section className="hero-band">
@@ -352,68 +368,100 @@ export function HypothesisTestCalculator() {
         </div>
       </section>
 
-      <ExampleSelector
-        selectedExampleId={selectedExample?.id}
-        onSelectExample={applyExample}
-      />
-
       <section className="page-section">
         <div className="section-header">
+          <p className="eyebrow">Fluxo guiado</p>
           <h2>Calculadora Inferencial</h2>
           <p className="section-subtitle">
-            Selecione o modo, informe os dados relevantes e gere uma conclusão
-            estatística em português.
+            Siga as etapas para selecionar o modo, carregar um exemplo ou
+            preencher os dados manualmente.
           </p>
         </div>
 
-        <form className="calculator-panel" onSubmit={calculate}>
-          <div className="mode-tabs" role="group" aria-label="Modo da calculadora">
-            <button
-              className={`mode-tab ${form.mode === 'calculated' ? 'active' : ''}`}
-              type="button"
-              onClick={() => updateField('mode', 'calculated')}
-            >
-              Calcular p-valor
-            </button>
-            <button
-              className={`mode-tab ${form.mode === 'given-p-value' ? 'active' : ''}`}
-              type="button"
-              onClick={() => updateField('mode', 'given-p-value')}
-            >
-              P-valor informado
-            </button>
-          </div>
-
-          {selectedExample ? (
-            <p>
-              <span className="badge">{selectedExample.sourceLabel}</span>
-            </p>
-          ) : null}
-
-          <div className="form-grid">
-            {form.mode === 'calculated' ? (
-              <div className="field">
-                <label htmlFor="testType">Tipo de teste</label>
-                <select
-                  id="testType"
-                  value={form.testType}
-                  onChange={(event) => updateField('testType', event.target.value)}
-                >
-                  <option value="mean-z">Teste Z para média — σ conhecido</option>
-                  <option value="mean-t">Teste T para média — σ desconhecido</option>
-                  <option value="proportion-z">Teste Z para proporção</option>
-                </select>
+        <div className="calculator-flow">
+          <section className="step-card">
+            <div className="step-heading">
+              <span className="step-number">1</span>
+              <div>
+                <h2>Escolha o modo</h2>
+                <p>
+                  Calcule o p-valor a partir dos dados ou resolva exercícios em
+                  que o p-valor já foi informado.
+                </p>
               </div>
-            ) : (
-              <div className="field">
-                <label htmlFor="context">Contexto do problema</label>
-                <textarea
-                  id="context"
-                  value={form.context}
-                  onChange={(event) => updateField('context', event.target.value)}
-                />
+            </div>
+            <div className="mode-tabs" role="group" aria-label="Modo da calculadora">
+              <button
+                className={`mode-tab ${form.mode === 'calculated' ? 'active' : ''}`}
+                type="button"
+                onClick={() => updateField('mode', 'calculated')}
+              >
+                Calcular p-valor
+              </button>
+              <button
+                className={`mode-tab ${form.mode === 'given-p-value' ? 'active' : ''}`}
+                type="button"
+                onClick={() => updateField('mode', 'given-p-value')}
+              >
+                P-valor informado
+              </button>
+            </div>
+          </section>
+
+          <ExampleSelector
+            selectedExampleId={selectedExample?.id}
+            onSelectExample={applyExample}
+          />
+
+          <ManualDataImport onUseSample={useManualSample} />
+
+          <form className="step-card calculator-panel" onSubmit={calculate}>
+            <div className="step-heading">
+              <span className="step-number">4</span>
+              <div>
+                <h2>Preencha os dados e calcule</h2>
+                <p>
+                  O formulário mostra apenas os campos relevantes para o modo e
+                  o teste selecionados.
+                </p>
               </div>
-            )}
+            </div>
+
+            {selectedExample ? (
+              <div className="loaded-example">
+                <span className="badge">{selectedExample.sourceLabel}</span>
+                <span>{selectedExample.title} carregado</span>
+              </div>
+            ) : null}
+
+            <div className="form-grid">
+              {form.mode === 'calculated' ? (
+                <div className="field">
+                  <label htmlFor="testType">Tipo de teste</label>
+                  <select
+                    id="testType"
+                    value={form.testType}
+                    onChange={(event) => updateField('testType', event.target.value)}
+                  >
+                    <option value="mean-z">Teste Z para média — σ conhecido</option>
+                    <option value="mean-t">Teste T para média — σ desconhecido</option>
+                    <option value="proportion-z">Teste Z para proporção</option>
+                  </select>
+                  <small>
+                    Use Z quando σ populacional é conhecido; use T quando σ é
+                    estimado pela amostra.
+                  </small>
+                </div>
+              ) : (
+                <div className="field span-2">
+                  <label htmlFor="context">Contexto do problema</label>
+                  <textarea
+                    id="context"
+                    value={form.context}
+                    onChange={(event) => updateField('context', event.target.value)}
+                  />
+                </div>
+              )}
 
             <div className="field">
               <label htmlFor="alternative">Tipo de teste</label>
@@ -561,46 +609,48 @@ export function HypothesisTestCalculator() {
                 </div>
               </>
             ) : null}
-          </div>
+            </div>
 
-          {errors.length > 0 ? (
-            <ul className="error-list">
-              {errors.map((error) => (
-                <li key={error}>{error}</li>
-              ))}
-            </ul>
-          ) : null}
+            {errors.length > 0 ? (
+              <ul className="error-list">
+                {errors.map((error) => (
+                  <li key={error}>{error}</li>
+                ))}
+              </ul>
+            ) : null}
 
-          {warnings.length > 0 ? (
-            <ul className="warning-list">
-              {warnings.map((warning) => (
-                <li key={warning}>{warning}</li>
-              ))}
-            </ul>
-          ) : null}
+            {warnings.length > 0 ? (
+              <ul className="warning-list">
+                {warnings.map((warning) => (
+                  <li key={warning}>{warning}</li>
+                ))}
+              </ul>
+            ) : null}
 
-          <div className="form-actions">
-            <button className="primary-button" type="submit">
-              Calcular
-            </button>
-            <button
-              className="secondary-button"
-              type="button"
-              onClick={() => {
-                setForm(initialForm)
-                setSelectedExample(null)
-                setResult(null)
-                setErrors([])
-                setWarnings([])
-              }}
-            >
-              Limpar
-            </button>
-          </div>
-        </form>
+            <div className="form-actions">
+              <button className="primary-button" type="submit">
+                Calcular
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => {
+                  setForm(initialForm)
+                  setSelectedExample(null)
+                  setResult(null)
+                  setErrors([])
+                  setWarnings([])
+                }}
+              >
+                Limpar
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
 
       <HypothesisResult result={result} />
+      <PublicDataSources />
     </>
   )
 }

@@ -1,3 +1,8 @@
+import {
+  getBrazilPublicDataExample,
+  getIrisSetosaExample,
+} from '../services/publicDataService'
+
 export const hypothesisExamples = [
   {
     id: 'aula-9-plano-dieta',
@@ -45,31 +50,6 @@ export const hypothesisExamples = [
     typeIIExplanation:
       'Erro Tipo II neste contexto seria não rejeitar H₀, concluindo que não há evidência de melhora, quando na verdade o novo código realmente reduziu o tempo médio para menos de 150 ms. A consequência prática seria deixar de reconhecer ou aproveitar uma melhoria real de performance.',
   },
-  {
-    id: 'iris-dataset',
-    title: 'Dados públicos reais — Iris Dataset',
-    sourceLabel: 'UCI Machine Learning Repository — Iris Dataset',
-    mode: 'calculated',
-    testType: 'mean-t',
-    parameter: 'μ',
-    context: 'comprimento médio da sépala da espécie Iris setosa',
-    description:
-      'Exemplo com dados públicos reais usando a espécie Iris setosa. O teste verifica se a média do comprimento da sépala é igual a 5,0 cm.',
-    hypothesizedValue: 5.0,
-    unit: 'cm',
-    alternative: 'two-sided',
-    alpha: 0.05,
-    pValue: null,
-    inputs: {
-      sampleMean: 5.006,
-      sampleStandardDeviation: 0.3525,
-      sampleSize: 50,
-    },
-    expectedConclusion:
-      'Como o p-valor é maior que o nível de significância, não há evidência estatística suficiente para rejeitar H₀. Portanto, com base neste teste, não há diferença estatisticamente significativa entre a média observada e 5,0 cm.',
-    typeIExplanation:
-      'Erro Tipo I neste contexto seria concluir que a média do comprimento da sépala difere de 5,0 cm, quando na verdade ela é igual a 5,0 cm.',
-    typeIIExplanation:
-      'Erro Tipo II neste contexto seria não rejeitar H₀ e concluir que não há diferença significativa, quando na verdade a média real difere de 5,0 cm.',
-  },
+  getIrisSetosaExample(),
+  getBrazilPublicDataExample(),
 ]
