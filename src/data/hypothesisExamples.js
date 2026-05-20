@@ -1,0 +1,75 @@
+export const hypothesisExamples = [
+  {
+    id: 'aula-9-plano-dieta',
+    title: 'Aula 9 — Plano de Dieta',
+    description:
+      'Uma nutricionista afirma que seu novo plano de dieta, quando seguido por 30 dias, resulta em uma perda de peso média de 5 kg. Um grupo de 50 voluntários seguiu a dieta, e a perda de peso média observada foi de 4,2 kg. Após análise, o teste resultou em p-valor de 0,03, com α = 0,05.',
+    sourceLabel: 'Aula 9 — Teste de Hipóteses',
+    mode: 'given-p-value',
+    testType: '',
+    parameter: 'μ',
+    context: 'perda média de peso causada pela dieta',
+    hypothesizedValue: 5,
+    unit: 'kg',
+    alternative: 'two-sided',
+    alpha: 0.05,
+    pValue: 0.03,
+    inputs: {},
+    expectedConclusion:
+      'Como o p-valor é menor ou igual ao nível de significância, rejeita-se H₀. Portanto, a afirmação de que a dieta provoca uma perda média exatamente igual a 5 kg deve ser rejeitada com base nos dados.',
+    typeIExplanation:
+      'Erro Tipo I neste contexto seria concluir que a dieta não tem efeito médio de 5 kg, rejeitando H₀, quando na verdade ela realmente tem esse efeito.',
+    typeIIExplanation:
+      'Erro Tipo II neste contexto seria não rejeitar H₀ e manter a afirmação de perda média de 5 kg, quando na verdade a dieta não produz esse resultado.',
+  },
+  {
+    id: 'tarefa-8-microsservico',
+    title: 'Tarefa 8 — Performance de Microsserviço',
+    description:
+      'O tempo médio de resposta do microsserviço de autenticação é de 150 ms. Após uma otimização de código, a equipe de DevOps quer verificar se o novo tempo médio de resposta é menor que 150 ms. A equipe coletou dados do novo microsserviço e, após a análise, obteve um p-valor de 0,125. O nível de significância alpha definido para o teste é de 0,05.',
+    sourceLabel: 'Tarefa 8 — Teste de Hipóteses',
+    mode: 'given-p-value',
+    testType: '',
+    parameter: 'μ',
+    context: 'tempo médio de resposta do microsserviço de autenticação',
+    hypothesizedValue: 150,
+    unit: 'ms',
+    alternative: 'left',
+    alpha: 0.05,
+    pValue: 0.125,
+    inputs: {},
+    expectedConclusion:
+      'Como o p-valor é maior que o nível de significância, não há evidência estatística suficiente para rejeitar H₀. Portanto, com base neste teste, o novo código não pode ser considerado estatisticamente mais rápido.',
+    typeIExplanation:
+      'Erro Tipo I neste contexto seria concluir que o novo código é mais rápido, rejeitando H₀, quando na verdade o tempo médio real não é menor que 150 ms. A consequência prática seria aprovar uma otimização que não trouxe ganho real de performance.',
+    typeIIExplanation:
+      'Erro Tipo II neste contexto seria não rejeitar H₀, concluindo que não há evidência de melhora, quando na verdade o novo código realmente reduziu o tempo médio para menos de 150 ms. A consequência prática seria deixar de reconhecer ou aproveitar uma melhoria real de performance.',
+  },
+  {
+    id: 'iris-dataset',
+    title: 'Dados públicos reais — Iris Dataset',
+    sourceLabel: 'UCI Machine Learning Repository — Iris Dataset',
+    mode: 'calculated',
+    testType: 'mean-t',
+    parameter: 'μ',
+    context: 'comprimento médio da sépala da espécie Iris setosa',
+    description:
+      'Exemplo com dados públicos reais usando a espécie Iris setosa. O teste verifica se a média do comprimento da sépala é igual a 5,0 cm.',
+    hypothesizedValue: 5.0,
+    unit: 'cm',
+    alternative: 'two-sided',
+    alpha: 0.05,
+    pValue: null,
+    inputs: {
+      sampleMean: 5.006,
+      sampleStandardDeviation: 0.3525,
+      sampleSize: 50,
+    },
+    expectedConclusion:
+      'Como o p-valor é maior que o nível de significância, não há evidência estatística suficiente para rejeitar H₀. Portanto, com base neste teste, não há diferença estatisticamente significativa entre a média observada e 5,0 cm.',
+    typeIExplanation:
+      'Erro Tipo I neste contexto seria concluir que a média do comprimento da sépala difere de 5,0 cm, quando na verdade ela é igual a 5,0 cm.',
+    typeIIExplanation:
+      'Erro Tipo II neste contexto seria não rejeitar H₀ e concluir que não há diferença significativa, quando na verdade a média real difere de 5,0 cm.',
+  },
+]
