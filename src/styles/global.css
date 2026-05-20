@@ -254,8 +254,9 @@ button.primary,
   padding: 28px 0 14px;
 }
 
-.narrow-flow {
-  max-width: 920px;
+.narrow-flow,
+.inferential-page {
+  max-width: 1080px;
 }
 
 .eyebrow {
@@ -405,6 +406,47 @@ button.primary,
 .manual-inline-card {
   display: grid;
   gap: 16px;
+}
+
+.choice-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.choice-card {
+  display: grid;
+  gap: 6px;
+  min-height: 94px;
+  align-content: center;
+  justify-items: start;
+  border: 1px solid var(--border-soft);
+  border-radius: 18px;
+  background: rgba(15, 23, 42, 0.62);
+  color: var(--text-main);
+  padding: 16px;
+  text-align: left;
+}
+
+.choice-card:hover,
+.choice-card.active {
+  border-color: rgba(34, 197, 94, 0.42);
+  background: var(--accent-soft);
+}
+
+.choice-card strong {
+  color: var(--text-main);
+  font-size: 1rem;
+}
+
+.choice-card span {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.compact-helper {
+  margin-top: 0;
 }
 
 .helper-card {
@@ -643,6 +685,13 @@ select option {
   scroll-margin-top: 96px;
 }
 
+.prominent-result {
+  border-color: rgba(34, 197, 94, 0.34);
+  background:
+    radial-gradient(circle at top right, rgba(34, 197, 94, 0.16), transparent 18rem),
+    linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+}
+
 .result-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -707,7 +756,6 @@ select option {
 .details-stack {
   display: grid;
   gap: 10px;
-  margin-top: 16px;
 }
 
 .detail-panel {
@@ -754,6 +802,7 @@ select option {
 @media (max-width: 860px) {
   .header-inner,
   .option-grid,
+  .choice-grid,
   .form-grid,
   .result-grid,
   .examples-grid,

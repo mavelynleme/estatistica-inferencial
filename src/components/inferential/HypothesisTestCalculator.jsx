@@ -338,6 +338,8 @@ export function HypothesisTestCalculator() {
       }),
       typeIExplanation: example?.typeIExplanation || getDefaultTypeI(targetForm),
       typeIIExplanation: example?.typeIIExplanation || getDefaultTypeII(targetForm),
+      sourceLabel: example?.sourceLabel,
+      exampleTitle: example?.title,
     }
 
     resultObject.dataRows = buildRows(targetForm, resultObject)
@@ -369,11 +371,11 @@ export function HypothesisTestCalculator() {
   return (
     <>
       <section className="inferential-minimal">
-        <div className="page-section narrow-flow">
+        <div className="page-section inferential-page">
           <div className="minimal-page-heading">
             <p className="eyebrow">Estatística Inferencial</p>
-            <h1>Teste de Hipóteses com P-Valor</h1>
-            <p>Calcule, compare e interprete o p-valor com clareza.</p>
+            <h1>Teste de Hipóteses</h1>
+            <p>Calcule ou interprete o p-valor de forma simples.</p>
           </div>
 
           <ExampleSelector
@@ -428,7 +430,7 @@ export function HypothesisTestCalculator() {
 
                 <div className="field">
                   <label htmlFor="hypothesizedValue">
-                    {form.parameter === 'p' ? 'Proporção hipotética' : 'Média hipotética'}
+                    Valor de referência
                   </label>
                   <input
                     id="hypothesizedValue"
@@ -570,7 +572,7 @@ export function HypothesisTestCalculator() {
 
               <div className="form-actions">
                 <button className="primary-button" type="submit">
-                  Calcular
+                  Calcular resultado
                 </button>
                 <button
                   className="secondary-button"
