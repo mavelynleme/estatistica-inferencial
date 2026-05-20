@@ -3,6 +3,7 @@ import { hypothesisExamples } from '../../data/hypothesisExamples'
 import { ExampleSelector } from './ExampleSelector'
 import { HypothesisResult } from './HypothesisResult'
 import { ManualDataImport } from './ManualDataImport'
+import { getIrisExampleWithFallback } from '../../services/publicDataService'
 import {
   buildDecision,
   buildHypotheses,
@@ -114,6 +115,9 @@ export function HypothesisTestCalculator() {
   const [warnings, setWarnings] = useState([])
   const [selectedExample, setSelectedExample] = useState(null)
   const [selectedOption, setSelectedOption] = useState('manual')
+  const [irisSummary, setIrisSummary] = useState(null)
+  const [irisDataStatus, setIrisDataStatus] = useState(null)
+  const [isLoadingIris, setIsLoadingIris] = useState(false)
 
   const updateField = (field, value) => {
     setForm((current) => {
@@ -162,6 +166,32 @@ export function HypothesisTestCalculator() {
     setErrors([])
     setWarnings([])
     setResult(buildResult(nextForm, example))
+  }
+
+  const buildIrisExampleFromSummary = (summary) => {
+    const baseExample = hypothesisExamples.find((example) => example.id === 'iris-dataset')
+
+    return {
+      ...baseExample,
+      inputs: {
+        sampleSize: summary.n,
+        sampleMean: summary.sampleMean,
+        sampleStandardDeviation: summary.sampleStandardDeviation,
+      },
+    }
+  }
+
+  const loadIrisData = async () => {
+    setIsLoadingIris(true)
+    const summary = await getIrisExampleWithFallback()
+    setIrisSummary(summary)
+    setIrisDataStatus(summary.dataStatus)
+    setIsLoadingIris(false)
+  }
+
+  const useIrisSummary = () => {
+    if (!irisSummary) return
+    applyExample(buildIrisExampleFromSummary(irisSummary))
   }
 
   const parseForm = (targetForm) => ({
@@ -349,8 +379,13 @@ export function HypothesisTestCalculator() {
           <ExampleSelector
             selectedExampleId={selectedExample?.id}
             selectedOption={selectedOption}
+            irisDataStatus={irisDataStatus}
+            irisSummary={irisSummary}
+            isLoadingIris={isLoadingIris}
+            onLoadIrisData={loadIrisData}
             onSelectExample={applyExample}
             onSelectManual={selectManual}
+            onUseIrisSummary={useIrisSummary}
           />
 
           <section className="flow-section">

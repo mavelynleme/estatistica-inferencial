@@ -1,4 +1,5 @@
 import { hypothesisExamples } from '../../data/hypothesisExamples'
+import { formatNumber } from '../../utils/hypothesisTests'
 
 const optionOrder = [
   'tarefa-8-microsservico',
@@ -15,8 +16,13 @@ function shortTitle(example) {
 export function ExampleSelector({
   selectedExampleId,
   selectedOption,
+  irisDataStatus,
+  irisSummary,
+  isLoadingIris,
+  onLoadIrisData,
   onSelectExample,
   onSelectManual,
+  onUseIrisSummary,
 }) {
   const selectedExample = hypothesisExamples.find(
     (example) => example.id === selectedExampleId,
@@ -76,6 +82,75 @@ export function ExampleSelector({
               ) : null}
             </div>
             <p>{selectedExample.description}</p>
+            {selectedExample.id === 'iris-dataset' ? (
+              <div className="iris-loader">
+                <div className="iris-actions">
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    disabled={isLoadingIris}
+                    onClick={onLoadIrisData}
+                  >
+                    Carregar dados da UCI
+                  </button>
+                  {irisSummary ? (
+                    <button
+                      className="primary-button"
+                      type="button"
+                      onClick={onUseIrisSummary}
+                    >
+                      Usar no teste T
+                    </button>
+                  ) : null}
+                </div>
+
+                {isLoadingIris ? (
+                  <p className="status-text">Carregando dados públicos...</p>
+                ) : null}
+
+                {irisDataStatus === 'online' ? (
+                  <p className="status-text success">
+                    Dados carregados da UCI com sucesso.
+                  </p>
+                ) : null}
+
+                {irisDataStatus === 'fallback' ? (
+                  <p className="status-text warning">
+                    Não foi possível carregar a fonte externa. Usando dados
+                    públicos pré-carregados.
+                  </p>
+                ) : null}
+
+                {irisSummary ? (
+                  <dl className="compact-summary">
+                    <div>
+                      <dt>Fonte</dt>
+                      <dd>{irisSummary.source}</dd>
+                    </div>
+                    <div>
+                      <dt>Espécie</dt>
+                      <dd>{irisSummary.species}</dd>
+                    </div>
+                    <div>
+                      <dt>Variável</dt>
+                      <dd>comprimento da sépala</dd>
+                    </div>
+                    <div>
+                      <dt>n</dt>
+                      <dd>{irisSummary.n}</dd>
+                    </div>
+                    <div>
+                      <dt>Média</dt>
+                      <dd>{formatNumber(irisSummary.sampleMean, 6)}</dd>
+                    </div>
+                    <div>
+                      <dt>Desvio padrão</dt>
+                      <dd>{formatNumber(irisSummary.sampleStandardDeviation, 6)}</dd>
+                    </div>
+                  </dl>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className="helper-card">
