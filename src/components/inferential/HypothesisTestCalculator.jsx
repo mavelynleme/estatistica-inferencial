@@ -373,9 +373,12 @@ export function HypothesisTestCalculator() {
       <section className="inferential-minimal">
         <div className="page-section inferential-page">
           <div className="minimal-page-heading">
-            <p className="eyebrow">Estatística Inferencial</p>
-            <h1>Teste de Hipóteses</h1>
-            <p>Calcule ou interprete o p-valor de forma simples.</p>
+            <div>
+              <p className="eyebrow">INFERENCIAL</p>
+              <h1>Teste de Hipóteses</h1>
+              <p>Calcule ou interprete o p-valor de forma simples.</p>
+            </div>
+            <div className="mascot-bubble" aria-hidden="true">🦖</div>
           </div>
 
           <ExampleSelector
@@ -392,7 +395,10 @@ export function HypothesisTestCalculator() {
 
           <section className="flow-section">
             <div className="flow-heading">
-              <h2>2. Informe os dados</h2>
+              <div className="numbered-title">
+                <span className="section-number">2</span>
+                <h2>Dados do teste</h2>
+              </div>
               <span className="soft-badge">
                 {form.mode === 'given-p-value' ? 'P-valor informado' : 'P-valor calculado'}
               </span>
@@ -458,7 +464,7 @@ export function HypothesisTestCalculator() {
                 </div>
 
                 <div className="field">
-                  <label htmlFor="alpha">α</label>
+                  <label htmlFor="alpha">α (nível de significância)</label>
                   <input
                     id="alpha"
                     value={form.alpha}
@@ -482,7 +488,7 @@ export function HypothesisTestCalculator() {
                 {form.mode === 'calculated' && form.testType !== 'proportion-z' ? (
                   <>
                     <div className="field">
-                      <label htmlFor="sampleMean">Média amostral</label>
+                      <label htmlFor="sampleMean">Média amostral (x̄)</label>
                       <input
                         id="sampleMean"
                         value={form.sampleMean}
@@ -491,7 +497,7 @@ export function HypothesisTestCalculator() {
                       />
                     </div>
                     <div className="field">
-                      <label htmlFor="sampleSize">n</label>
+                      <label htmlFor="sampleSize">n (tamanho da amostra)</label>
                       <input
                         id="sampleSize"
                         value={form.sampleSize}
@@ -504,7 +510,7 @@ export function HypothesisTestCalculator() {
 
                 {form.mode === 'calculated' && form.testType === 'mean-z' ? (
                   <div className="field">
-                    <label htmlFor="populationStandardDeviation">Desvio padrão populacional</label>
+                    <label htmlFor="populationStandardDeviation">Desvio padrão populacional (σ)</label>
                     <input
                       id="populationStandardDeviation"
                       value={form.populationStandardDeviation}
@@ -518,7 +524,7 @@ export function HypothesisTestCalculator() {
 
                 {form.mode === 'calculated' && form.testType === 'mean-t' ? (
                   <div className="field">
-                    <label htmlFor="sampleStandardDeviation">Desvio padrão amostral</label>
+                    <label htmlFor="sampleStandardDeviation">Desvio padrão (s)</label>
                     <input
                       id="sampleStandardDeviation"
                       value={form.sampleStandardDeviation}
@@ -542,7 +548,7 @@ export function HypothesisTestCalculator() {
                       />
                     </div>
                     <div className="field">
-                      <label htmlFor="sampleSizeProportion">n</label>
+                      <label htmlFor="sampleSizeProportion">n (tamanho da amostra)</label>
                       <input
                         id="sampleSizeProportion"
                         value={form.sampleSize}

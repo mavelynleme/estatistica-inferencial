@@ -13,17 +13,17 @@ export function Header({
         </button>
         <nav className="header-nav" aria-label="Navegação principal">
           <button className="nav-button" type="button" onClick={onNavigateHome}>
-            Início
+            Home
           </button>
           <button className="nav-button" type="button" onClick={onOpenDescriptive}>
-            Estatística Descritiva
+            Descritiva
           </button>
           <button
             className={`nav-button ${activeView === 'inferential' ? 'active' : ''}`}
             type="button"
             onClick={onNavigateInferential}
           >
-            Estatística Inferencial
+            Inferencial
           </button>
         </nav>
       </div>

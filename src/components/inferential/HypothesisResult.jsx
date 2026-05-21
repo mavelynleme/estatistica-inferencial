@@ -33,29 +33,34 @@ export function HypothesisResult({ result }) {
     <>
       <section className="flow-section result-section">
         <div className="flow-heading">
-          <h2>3. Resultado</h2>
+          <div className="numbered-title">
+            <span className="section-number">3</span>
+            <h2>Resultado</h2>
+          </div>
           <span className="soft-badge">Interpretação final</span>
         </div>
 
         <article className="compact-result-card prominent-result">
-          <div className="result-metrics">
+          <div className="result-top-grid">
             <div>
-              <span>p-valor</span>
+              <span>P-VALOR</span>
               <strong>{formatNumber(result.pValue, 6)}</strong>
             </div>
             <div>
               <span>α</span>
               <strong>{formatNumber(result.alpha, 4)}</strong>
             </div>
+            <div>
+              <span>DECISÃO</span>
+              <strong className={`decision-pill ${decisionClass}`}>
+                {result.decision.label}
+              </strong>
+            </div>
           </div>
 
-          <div className="decision-block">
-            <span>Decisão</span>
-            <strong className={decisionClass}>{result.decision.label}</strong>
-          </div>
-
+          <div className="result-divider" />
           <div className="conclusion compact">
-            <span>Conclusão</span>
+            <span>CONCLUSÃO</span>
             <p>{result.interpretation}</p>
           </div>
         </article>

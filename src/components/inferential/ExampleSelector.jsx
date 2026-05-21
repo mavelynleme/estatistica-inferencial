@@ -58,7 +58,10 @@ export function ExampleSelector({
   return (
     <section className="flow-section">
       <div className="flow-heading">
-        <h2>1. Escolha o exemplo ou tipo de teste</h2>
+        <div className="numbered-title">
+          <span className="section-number">1</span>
+          <h2>Escolha o teste</h2>
+        </div>
         <span className="soft-badge">
           {selectedExample?.mode === 'given-p-value'
             ? 'P-valor informado'
@@ -87,7 +90,10 @@ export function ExampleSelector({
           <span className="badge">{selectedChoice.title}</span>
           <span className="soft-badge">{selectedChoice.subtitle}</span>
           {selectedExample?.sourceLabel?.toLowerCase().includes('uci') ? (
-            <span className="soft-badge">Dados públicos</span>
+            <>
+              <span className="soft-badge">Dados públicos</span>
+              <span className="soft-badge">Fallback local disponível</span>
+            </>
           ) : null}
         </div>
         <p>{selectedChoice.helper}</p>
