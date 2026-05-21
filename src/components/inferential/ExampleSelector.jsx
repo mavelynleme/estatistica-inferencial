@@ -3,6 +3,12 @@ import { formatNumber } from '../../utils/hypothesisTests'
 
 const choices = [
   {
+    id: 'tarefa-8-teste-ab-conversao',
+    title: 'Tarefa 8',
+    subtitle: 'Teste A/B',
+    helper: 'Verifica se a nova cor aumenta a taxa de conversão acima de 3%.',
+  },
+  {
     id: 'tarefa-8-microsservico',
     title: 'Tarefa 8',
     subtitle: 'Microsserviço',
@@ -89,6 +95,16 @@ export function ExampleSelector({
         <div className="example-meta">
           <span className="badge">{selectedChoice.title}</span>
           <span className="soft-badge">{selectedChoice.subtitle}</span>
+          {selectedExample?.mode === 'given-p-value' ? (
+            <span className="soft-badge">P-valor informado</span>
+          ) : null}
+          {selectedExample?.alternative ? (
+            <span className="soft-badge">
+              {selectedExample.alternative === 'two-sided'
+                ? 'Teste bilateral'
+                : 'Teste unilateral'}
+            </span>
+          ) : null}
           {selectedExample?.sourceLabel?.toLowerCase().includes('uci') ? (
             <>
               <span className="soft-badge">Dados públicos</span>

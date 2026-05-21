@@ -879,6 +879,38 @@ select option {
   transform: rotate(90deg);
 }
 
+.compliance-section {
+  padding: 18px 20px;
+}
+
+.compliance-section summary {
+  cursor: pointer;
+  color: var(--text-main);
+  font-weight: 850;
+}
+
+.compliance-list {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.compliance-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-soft);
+  font-size: 0.94rem;
+}
+
+.compliance-list li::before {
+  content: "✓";
+  color: #86efac;
+  font-weight: 900;
+}
+
 .detail-content {
   border-top: 1px solid var(--border-soft);
   padding: 16px;

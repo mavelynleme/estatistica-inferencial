@@ -5,6 +5,32 @@ import {
 
 export const hypothesisExamples = [
   {
+    id: 'tarefa-8-teste-ab-conversao',
+    title: 'Tarefa 8 — Teste A/B de Conversão',
+    description:
+      'Uma equipe de UX/UI propôs uma nova cor para o botão “Finalizar Compra” em um e-commerce. A taxa de conversão atual é de 3%. A equipe quer testar se a nova cor aumenta a taxa de conversão. O teste obteve p-valor de 0,018, com α = 0,05.',
+    sourceLabel: 'Tarefa 8 — Teste de Hipóteses',
+    mode: 'given-p-value',
+    testType: '',
+    category: 'proportion',
+    parameter: 'p',
+    context: 'taxa de conversão do botão Finalizar Compra',
+    hypothesizedValue: 0.03,
+    unit: '',
+    alternative: 'right',
+    alpha: 0.05,
+    pValue: 0.018,
+    inputs: {},
+    expectedConclusion:
+      'Como o p-valor é menor ou igual ao nível de significância, há evidência estatística suficiente para rejeitar H₀. Portanto, a nova cor pode ser considerada associada a um aumento estatisticamente significativo na taxa de conversão.',
+    resultSummaryConclusion:
+      'Há evidência estatística suficiente para afirmar que a nova cor aumenta a taxa de conversão.',
+    typeIExplanation:
+      'Erro Tipo I neste contexto seria concluir que a nova cor aumenta a taxa de conversão, rejeitando H₀, quando na verdade ela não aumenta. A consequência prática seria a empresa adotar uma alteração visual sem ganho real de conversão, tomando uma decisão de negócio equivocada.',
+    typeIIExplanation:
+      'Erro Tipo II neste contexto seria não rejeitar H₀, concluindo que não há evidência de aumento, quando na verdade a nova cor realmente aumenta a taxa de conversão. A consequência prática seria a empresa deixar de adotar uma melhoria que poderia gerar mais vendas.',
+  },
+  {
     id: 'aula-9-plano-dieta',
     title: 'Aula 9 — Plano de Dieta',
     description:

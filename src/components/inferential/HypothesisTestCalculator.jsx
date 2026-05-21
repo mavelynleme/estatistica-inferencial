@@ -3,6 +3,7 @@ import { hypothesisExamples } from '../../data/hypothesisExamples'
 import { ExampleSelector } from './ExampleSelector'
 import { HypothesisResult } from './HypothesisResult'
 import { ManualDataImport } from './ManualDataImport'
+import { P2Compliance } from './P2Compliance'
 import { getIrisExampleWithFallback } from '../../services/publicDataService'
 import {
   buildDecision,
@@ -334,7 +335,8 @@ export function HypothesisTestCalculator() {
       interpretation: buildInterpretation({
         pValue: safePValue,
         alpha: parsed.alpha,
-        expectedConclusion: example?.expectedConclusion,
+        expectedConclusion:
+          example?.resultSummaryConclusion || example?.expectedConclusion,
       }),
       typeIExplanation: example?.typeIExplanation || getDefaultTypeI(targetForm),
       typeIIExplanation: example?.typeIIExplanation || getDefaultTypeII(targetForm),
@@ -599,6 +601,7 @@ export function HypothesisTestCalculator() {
           </section>
 
           <HypothesisResult result={result} />
+          <P2Compliance />
         </div>
       </section>
     </>
