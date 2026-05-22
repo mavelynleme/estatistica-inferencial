@@ -557,7 +557,7 @@ select option {
 .card-actions,
 .form-actions,
 .example-meta,
-.iris-actions {
+.public-data-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
@@ -647,7 +647,7 @@ select option {
   box-shadow: none;
 }
 
-.iris-loader {
+.public-data-loader {
   display: grid;
   gap: 12px;
   margin-top: 16px;
@@ -998,7 +998,7 @@ select option {
   .card-actions,
   .form-actions,
   .mode-tabs,
-  .iris-actions {
+  .public-data-actions {
     display: grid;
   }
 

@@ -1,7 +1,4 @@
-import {
-  getBrazilPublicDataExample,
-  getIrisSetosaExample,
-} from '../services/publicDataService'
+import { getIbgeIpcaExample } from '../services/publicDataService'
 
 export const hypothesisExamples = [
   {
@@ -76,6 +73,5 @@ export const hypothesisExamples = [
     typeIIExplanation:
       'Erro Tipo II neste contexto seria não rejeitar H₀, concluindo que não há evidência de melhora, quando na verdade o novo código realmente reduziu o tempo médio para menos de 150 ms. A consequência prática seria deixar de reconhecer ou aproveitar uma melhoria real de performance.',
   },
-  getIrisSetosaExample(),
-  getBrazilPublicDataExample(),
+  getIbgeIpcaExample(),
 ]

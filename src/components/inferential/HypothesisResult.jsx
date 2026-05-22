@@ -116,6 +116,11 @@ export function HypothesisResult({ result }) {
 
           <ResultDetail title="Fonte">
             <p>{result.sourceLabel || 'Preenchimento manual'}</p>
+            {result.publicDataSummary ? (
+              <p>
+                {result.publicDataSummary.source} — {result.publicDataSummary.dataset}
+              </p>
+            ) : null}
             {result.exampleTitle ? <p>{result.exampleTitle}</p> : null}
           </ResultDetail>
         </div>

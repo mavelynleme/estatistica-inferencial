@@ -21,10 +21,10 @@ const choices = [
     helper: 'Analisa se a perda média de peso é diferente de 5 kg.',
   },
   {
-    id: 'iris-dataset',
-    title: 'Iris Dataset',
-    subtitle: 'Dados reais',
-    helper: 'Usa dados públicos da flor Iris setosa para um teste t.',
+    id: 'ibge-ipca',
+    title: 'IBGE',
+    subtitle: 'IPCA',
+    helper: 'Usa dados públicos do IBGE sobre a variação mensal do IPCA para um teste t.',
   },
   {
     id: 'manual',
@@ -37,13 +37,13 @@ const choices = [
 export function ExampleSelector({
   selectedExampleId,
   selectedOption,
-  irisDataStatus,
-  irisSummary,
-  isLoadingIris,
-  onLoadIrisData,
+  publicDataStatus,
+  publicDataSummary,
+  isLoadingPublicData,
+  onLoadPublicData,
   onSelectExample,
   onSelectManual,
-  onUseIrisSummary,
+  onUsePublicDataSummary,
 }) {
   const selectedExample = hypothesisExamples.find(
     (example) => example.id === selectedExampleId,
@@ -105,79 +105,83 @@ export function ExampleSelector({
                 : 'Teste unilateral'}
             </span>
           ) : null}
-          {selectedExample?.sourceLabel?.toLowerCase().includes('uci') ? (
+          {selectedExample?.id === 'ibge-ipca' ? (
             <>
               <span className="soft-badge">Dados públicos</span>
+              <span className="soft-badge">IBGE</span>
               <span className="soft-badge">Fallback local disponível</span>
             </>
           ) : null}
         </div>
         <p>{selectedChoice.helper}</p>
 
-        {selectedExample?.id === 'iris-dataset' ? (
-          <div className="iris-loader">
-            <div className="iris-actions">
+        {selectedExample?.id === 'ibge-ipca' ? (
+          <div className="public-data-loader">
+            <div className="public-data-actions">
               <button
                 className="secondary-button"
                 type="button"
-                disabled={isLoadingIris}
-                onClick={onLoadIrisData}
+                disabled={isLoadingPublicData}
+                onClick={onLoadPublicData}
               >
-                Carregar dados da UCI
+                Atualizar dados do IBGE
               </button>
-              {irisSummary ? (
+              {publicDataSummary ? (
                 <button
                   className="primary-button"
                   type="button"
-                  onClick={onUseIrisSummary}
+                  onClick={onUsePublicDataSummary}
                 >
-                  Usar no teste T
+                  Usar no teste t
                 </button>
               ) : null}
             </div>
 
-            {isLoadingIris ? (
+            {isLoadingPublicData ? (
               <p className="status-text">Carregando dados públicos...</p>
             ) : null}
 
-            {irisDataStatus === 'online' ? (
+            {publicDataStatus === 'online' ? (
               <p className="status-text success">
-                Dados carregados da UCI com sucesso.
+                Dados carregados do IBGE.
               </p>
             ) : null}
 
-            {irisDataStatus === 'fallback' ? (
+            {publicDataStatus === 'fallback' ? (
               <p className="status-text warning">
-                Não foi possível carregar a fonte externa. Usando dados públicos
-                pré-carregados.
+                Não foi possível acessar o IBGE. Usando dados públicos pré-carregados.
               </p>
             ) : null}
 
-            {irisSummary ? (
+            {publicDataSummary ? (
               <dl className="compact-summary">
                 <div>
                   <dt>Fonte</dt>
-                  <dd>{irisSummary.source}</dd>
+                  <dd>{publicDataSummary.source}</dd>
                 </div>
                 <div>
-                  <dt>Espécie</dt>
-                  <dd>{irisSummary.species}</dd>
+                  <dt>Tabela</dt>
+                  <dd>1737 — IPCA</dd>
                 </div>
                 <div>
                   <dt>Variável</dt>
-                  <dd>comprimento da sépala</dd>
+                  <dd>{publicDataSummary.variable}</dd>
+                </div>
+                <div>
+                  <dt>Períodos</dt>
+                  <dd>{publicDataSummary.periods.join(', ')}</dd>
                 </div>
                 <div>
                   <dt>n</dt>
-                  <dd>{irisSummary.n}</dd>
+                  <dd>{publicDataSummary.n}</dd>
                 </div>
                 <div>
                   <dt>Média</dt>
-                  <dd>{formatNumber(irisSummary.sampleMean, 6)}</dd>
+                  <dd>{formatNumber(publicDataSummary.sampleMean, 6)}</dd>
                 </div>
                 <div>
                   <dt>Desvio padrão</dt>
-                  <dd>{formatNumber(irisSummary.sampleStandardDeviation, 6)}</dd>
+                  <dd>{formatNumber(publicDataSummary.sampleStandardDeviation, 6)}</dd>
                 </div>
               </dl>
             ) : null}

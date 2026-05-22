@@ -4,7 +4,7 @@ import { ExampleSelector } from './ExampleSelector'
 import { HypothesisResult } from './HypothesisResult'
 import { ManualDataImport } from './ManualDataImport'
 import { P2Compliance } from './P2Compliance'
-import { getIrisExampleWithFallback } from '../../services/publicDataService'
+import { getIbgeIpcaExampleWithFallback } from '../../services/publicDataService'
 import {
   buildDecision,
   buildHypotheses,
@@ -92,6 +92,13 @@ function buildRows(form, result) {
     rows.push(['n', formatNumber(result.inputs.sampleSize, 0)])
   }
 
+  if (result.publicDataSummary) {
+    rows.push(['Fonte', result.publicDataSummary.source])
+    rows.push(['Períodos', result.publicDataSummary.periods.join(', ')])
+    rows.push(['Mínimo', `${formatNumber(result.publicDataSummary.min, 6)}%`])
+    rows.push(['Máximo', `${formatNumber(result.publicDataSummary.max, 6)}%`])
+  }
+
   if (form.mode === 'calculated' && form.testType === 'proportion-z') {
     rows.push(['Sucessos', formatNumber(result.inputs.successes, 0)])
     rows.push(['n', formatNumber(result.inputs.sampleSize, 0)])
@@ -116,9 +123,9 @@ export function HypothesisTestCalculator() {
   const [warnings, setWarnings] = useState([])
   const [selectedExample, setSelectedExample] = useState(null)
   const [selectedOption, setSelectedOption] = useState('manual')
-  const [irisSummary, setIrisSummary] = useState(null)
-  const [irisDataStatus, setIrisDataStatus] = useState(null)
-  const [isLoadingIris, setIsLoadingIris] = useState(false)
+  const [publicDataSummary, setPublicDataSummary] = useState(null)
+  const [publicDataStatus, setPublicDataStatus] = useState(null)
+  const [isLoadingPublicData, setIsLoadingPublicData] = useState(false)
 
   const updateField = (field, value) => {
     setForm((current) => {
@@ -163,14 +170,18 @@ export function HypothesisTestCalculator() {
 
     setSelectedOption(example.id)
     setSelectedExample(example)
+    if (example.publicDataSummary) {
+      setPublicDataSummary(example.publicDataSummary)
+      setPublicDataStatus(example.publicDataSummary.dataStatus || 'fallback')
+    }
     setForm(nextForm)
     setErrors([])
     setWarnings([])
     setResult(buildResult(nextForm, example))
   }
 
-  const buildIrisExampleFromSummary = (summary) => {
-    const baseExample = hypothesisExamples.find((example) => example.id === 'iris-dataset')
+  const buildPublicDataExampleFromSummary = (summary) => {
+    const baseExample = hypothesisExamples.find((example) => example.id === 'ibge-ipca')
 
     return {
       ...baseExample,
@@ -179,20 +190,21 @@ export function HypothesisTestCalculator() {
         sampleMean: summary.sampleMean,
         sampleStandardDeviation: summary.sampleStandardDeviation,
       },
+      publicDataSummary: summary,
     }
   }
 
-  const loadIrisData = async () => {
-    setIsLoadingIris(true)
-    const summary = await getIrisExampleWithFallback()
-    setIrisSummary(summary)
-    setIrisDataStatus(summary.dataStatus)
-    setIsLoadingIris(false)
+  const loadPublicData = async () => {
+    setIsLoadingPublicData(true)
+    const summary = await getIbgeIpcaExampleWithFallback()
+    setPublicDataSummary(summary)
+    setPublicDataStatus(summary.dataStatus)
+    setIsLoadingPublicData(false)
   }
 
-  const useIrisSummary = () => {
-    if (!irisSummary) return
-    applyExample(buildIrisExampleFromSummary(irisSummary))
+  const usePublicDataSummary = () => {
+    if (!publicDataSummary) return
+    applyExample(buildPublicDataExampleFromSummary(publicDataSummary))
   }
 
   const parseForm = (targetForm) => ({
@@ -342,6 +354,13 @@ export function HypothesisTestCalculator() {
       typeIIExplanation: example?.typeIIExplanation || getDefaultTypeII(targetForm),
       sourceLabel: example?.sourceLabel,
       exampleTitle: example?.title,
+      publicDataSummary: example?.publicDataSummary,
+    }
+
+    if (example?.dynamicConclusion === 'ibge-ipca') {
+      resultObject.interpretation = decision.rejectNull
+        ? 'Há evidência estatística suficiente para afirmar que a variação média mensal do IPCA está acima de 0,40%.'
+        : 'Não há evidência estatística suficiente para afirmar que a variação média mensal do IPCA está acima de 0,40%.'
     }
 
     resultObject.dataRows = buildRows(targetForm, resultObject)
@@ -386,13 +405,13 @@ export function HypothesisTestCalculator() {
           <ExampleSelector
             selectedExampleId={selectedExample?.id}
             selectedOption={selectedOption}
-            irisDataStatus={irisDataStatus}
-            irisSummary={irisSummary}
-            isLoadingIris={isLoadingIris}
-            onLoadIrisData={loadIrisData}
+            publicDataStatus={publicDataStatus}
+            publicDataSummary={publicDataSummary}
+            isLoadingPublicData={isLoadingPublicData}
+            onLoadPublicData={loadPublicData}
             onSelectExample={applyExample}
             onSelectManual={selectManual}
-            onUseIrisSummary={useIrisSummary}
+            onUsePublicDataSummary={usePublicDataSummary}
           />
 
           <section className="flow-section">

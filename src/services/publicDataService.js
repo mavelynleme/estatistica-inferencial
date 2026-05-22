@@ -1,56 +1,69 @@
 import {
-  brazilPublicPreparedExample,
-  irisSetosaPublicExample,
+  ibgeIpcaFallback,
+  ibgeIpcaPublicExample,
   publicDataSources,
 } from '../data/publicDatasets'
 
-export const IRIS_UCI_URL =
-  'https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data'
+export const IBGE_IPCA_AGREGADOS_URL =
+  'https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-12/variaveis/63?localidades=N1[all]'
 
-export async function fetchIrisDatasetFromUCI() {
-  const response = await fetch(IRIS_UCI_URL)
+export const IBGE_IPCA_SIDRA_URL =
+  'https://apisidra.ibge.gov.br/values/t/1737/n1/all/v/63/p/last%2012/d/v63%202'
 
-  if (!response.ok) {
-    throw new Error(`UCI request failed with status ${response.status}`)
+export async function fetchIbgeIpcaData() {
+  try {
+    const response = await fetch(IBGE_IPCA_AGREGADOS_URL)
+    if (!response.ok) throw new Error(`IBGE request failed with ${response.status}`)
+    return await response.json()
+  } catch {
+    const response = await fetch(IBGE_IPCA_SIDRA_URL)
+    if (!response.ok) throw new Error(`SIDRA request failed with ${response.status}`)
+    return await response.json()
   }
-
-  const rawText = await response.text()
-  return parseIrisData(rawText)
 }
 
-export function parseIrisData(rawText) {
-  return String(rawText)
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const columns = line.split(',').map((column) => column.trim())
+function parsePeriod(rawPeriod) {
+  const value = String(rawPeriod ?? '').trim()
+  if (/^\d{6}$/.test(value)) {
+    return `${value.slice(0, 4)}-${value.slice(4)}`
+  }
+  return value
+}
 
-      if (columns.length !== 5) {
-        throw new Error('Invalid Iris row format')
-      }
+function parseValue(rawValue) {
+  const value = String(rawValue ?? '').trim().replace(',', '.')
+  if (!value || value === '...' || value.toLowerCase() === 'null') return Number.NaN
+  return Number(value)
+}
 
-      const [sepalLength, sepalWidth, petalLength, petalWidth] = columns
-        .slice(0, 4)
-        .map(Number)
+function parseSidraRows(rows) {
+  return rows
+    .slice(1)
+    .map((row) => ({
+      period: parsePeriod(row.D3C || row.periodo || row.period),
+      value: parseValue(row.V || row.valor || row.value),
+    }))
+    .filter((item) => item.period && Number.isFinite(item.value))
+}
 
-      if (
-        !Number.isFinite(sepalLength) ||
-        !Number.isFinite(sepalWidth) ||
-        !Number.isFinite(petalLength) ||
-        !Number.isFinite(petalWidth)
-      ) {
-        throw new Error('Invalid numeric value in Iris dataset')
-      }
+function parseAgregadosRows(rawData) {
+  const results = rawData?.[0]?.resultados || []
+  return results
+    .flatMap((result) =>
+      (result.series || []).flatMap((serie) =>
+        Object.entries(serie.serie || {}).map(([period, value]) => ({
+          period: parsePeriod(period),
+          value: parseValue(value),
+        })),
+      ),
+    )
+    .filter((item) => item.period && Number.isFinite(item.value))
+}
 
-      return {
-        sepalLength,
-        sepalWidth,
-        petalLength,
-        petalWidth,
-        species: columns[4],
-      }
-    })
+export function parseIbgeIpcaData(rawData) {
+  if (Array.isArray(rawData)) return parseSidraRows(rawData)
+  if (Array.isArray(rawData?.value)) return parseSidraRows(rawData.value)
+  return parseAgregadosRows(rawData)
 }
 
 function sampleMean(values) {
@@ -62,63 +75,43 @@ function sampleStandardDeviation(values, mean) {
   return Math.sqrt(sumSquares / (values.length - 1))
 }
 
-function summarizeIrisSetosa(rows) {
-  const sepalLengths = rows
-    .filter((row) => row.species === 'Iris-setosa')
-    .map((row) => row.sepalLength)
+function summarizeIpcaRows(rows, dataStatus) {
+  const values = rows.map((row) => row.value)
+  if (values.length <= 1) throw new Error('Not enough IPCA values to summarize')
 
-  if (sepalLengths.length <= 1) {
-    throw new Error('Not enough Iris-setosa rows to summarize')
-  }
-
-  const mean = sampleMean(sepalLengths)
+  const mean = sampleMean(values)
 
   return {
-    source: 'UCI Machine Learning Repository',
-    dataset: 'Iris Dataset',
-    species: 'Iris-setosa',
-    variable: 'sepal length',
-    unit: 'cm',
-    n: sepalLengths.length,
+    source: 'IBGE/SIDRA',
+    dataset: 'IPCA — Tabela 1737',
+    variable: 'Variação mensal do IPCA',
+    unit: '%',
+    periods: rows.map((row) => row.period),
+    values: rows,
+    n: values.length,
     sampleMean: mean,
-    sampleStandardDeviation: sampleStandardDeviation(sepalLengths, mean),
+    sampleStandardDeviation: sampleStandardDeviation(values, mean),
+    min: Math.min(...values),
+    max: Math.max(...values),
+    dataStatus,
   }
 }
 
-export async function getIrisSetosaSepalLengthSummary() {
-  const rows = await fetchIrisDatasetFromUCI()
-  return summarizeIrisSetosa(rows)
+export async function getIbgeIpcaMonthlyVariationSummary() {
+  const rawData = await fetchIbgeIpcaData()
+  return summarizeIpcaRows(parseIbgeIpcaData(rawData), 'online')
 }
 
-export async function getIrisExampleWithFallback() {
+export async function getIbgeIpcaExampleWithFallback() {
   try {
-    const summary = await getIrisSetosaSepalLengthSummary()
-    return {
-      ...summary,
-      dataStatus: 'online',
-    }
+    return await getIbgeIpcaMonthlyVariationSummary()
   } catch {
-    return {
-      source: 'UCI Machine Learning Repository',
-      dataset: 'Iris Dataset',
-      species: 'Iris-setosa',
-      variable: 'sepal length',
-      unit: 'cm',
-      n: irisSetosaPublicExample.example.inputs.sampleSize,
-      sampleMean: irisSetosaPublicExample.example.inputs.sampleMean,
-      sampleStandardDeviation:
-        irisSetosaPublicExample.example.inputs.sampleStandardDeviation,
-      dataStatus: 'fallback',
-    }
+    return summarizeIpcaRows(ibgeIpcaFallback.values, 'fallback')
   }
 }
 
-export function getIrisSetosaExample() {
-  return irisSetosaPublicExample.example
-}
-
-export function getBrazilPublicDataExample() {
-  return brazilPublicPreparedExample.example
+export function getIbgeIpcaExample() {
+  return ibgeIpcaPublicExample.example
 }
 
 export function getAvailablePublicDataSources() {
