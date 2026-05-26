@@ -4,109 +4,128 @@ import {
   publicDataSources,
 } from '../data/publicDatasets'
 
-export const IBGE_IPCA_AGREGADOS_URL =
-  'https://servicodados.ibge.gov.br/api/v3/agregados/1737/periodos/-12/variaveis/63?localidades=N1[all]'
-
 export const IBGE_IPCA_SIDRA_URL =
   'https://apisidra.ibge.gov.br/values/t/1737/n1/all/v/63/p/last%2012/d/v63%202'
 
-export async function fetchIbgeIpcaData() {
-  try {
-    const response = await fetch(IBGE_IPCA_AGREGADOS_URL)
-    if (!response.ok) throw new Error(`IBGE request failed with ${response.status}`)
-    return await response.json()
-  } catch {
-    const response = await fetch(IBGE_IPCA_SIDRA_URL)
-    if (!response.ok) throw new Error(`SIDRA request failed with ${response.status}`)
-    return await response.json()
-  }
-}
-
 function parsePeriod(rawPeriod) {
   const value = String(rawPeriod ?? '').trim()
-  if (/^\d{6}$/.test(value)) {
-    return `${value.slice(0, 4)}-${value.slice(4)}`
-  }
+  if (/^\d{6}$/.test(value)) return `${value.slice(0, 4)}-${value.slice(4)}`
   return value
 }
 
 function parseValue(rawValue) {
-  const value = String(rawValue ?? '').trim().replace(',', '.')
-  if (!value || value === '...' || value.toLowerCase() === 'null') return Number.NaN
-  return Number(value)
+  const value = String(rawValue ?? '').trim()
+  if (!value || value === '...' || value === '-' || value.toLowerCase() === 'null') {
+    return Number.NaN
+  }
+
+  return Number(value.replace(',', '.'))
 }
 
-function parseSidraRows(rows) {
-  return rows
-    .slice(1)
-    .map((row) => ({
-      period: parsePeriod(row.D3C || row.periodo || row.period),
-      value: parseValue(row.V || row.valor || row.value),
-    }))
-    .filter((item) => item.period && Number.isFinite(item.value))
-}
-
-function parseAgregadosRows(rawData) {
-  const results = rawData?.[0]?.resultados || []
-  return results
-    .flatMap((result) =>
-      (result.series || []).flatMap((serie) =>
-        Object.entries(serie.serie || {}).map(([period, value]) => ({
-          period: parsePeriod(period),
-          value: parseValue(value),
-        })),
-      ),
+export async function fetchIbgeIpcaData() {
+  try {
+    const response = await fetch(IBGE_IPCA_SIDRA_URL)
+    if (!response.ok) {
+      throw new Error(`IBGE retornou status ${response.status}.`)
+    }
+    return await response.json()
+  } catch (error) {
+    throw new Error(
+      error?.message || 'Não foi possível carregar os dados públicos do IBGE.',
     )
-    .filter((item) => item.period && Number.isFinite(item.value))
-}
-
-export function parseIbgeIpcaData(rawData) {
-  if (Array.isArray(rawData)) return parseSidraRows(rawData)
-  if (Array.isArray(rawData?.value)) return parseSidraRows(rawData.value)
-  return parseAgregadosRows(rawData)
-}
-
-function sampleMean(values) {
-  return values.reduce((total, value) => total + value, 0) / values.length
-}
-
-function sampleStandardDeviation(values, mean) {
-  const sumSquares = values.reduce((total, value) => total + (value - mean) ** 2, 0)
-  return Math.sqrt(sumSquares / (values.length - 1))
-}
-
-function summarizeIpcaRows(rows, dataStatus) {
-  const values = rows.map((row) => row.value)
-  if (values.length <= 1) throw new Error('Not enough IPCA values to summarize')
-
-  const mean = sampleMean(values)
-
-  return {
-    source: 'IBGE/SIDRA',
-    dataset: 'IPCA — Tabela 1737',
-    variable: 'Variação mensal do IPCA',
-    unit: '%',
-    periods: rows.map((row) => row.period),
-    values: rows,
-    n: values.length,
-    sampleMean: mean,
-    sampleStandardDeviation: sampleStandardDeviation(values, mean),
-    min: Math.min(...values),
-    max: Math.max(...values),
-    dataStatus,
   }
 }
 
-export async function getIbgeIpcaMonthlyVariationSummary() {
-  const rawData = await fetchIbgeIpcaData()
-  return summarizeIpcaRows(parseIbgeIpcaData(rawData), 'online')
+export function parseIbgeIpcaData(rawData) {
+  const rows = Array.isArray(rawData) ? rawData : rawData?.value
+  if (!Array.isArray(rows)) return []
+
+  return rows
+    .map((row) => {
+      const period = parsePeriod(row?.D2C || row?.D3C || row?.periodo || row?.period)
+      const value = parseValue(row?.V || row?.valor || row?.value)
+      return { period, value }
+    })
+    .filter((item) => item.period && Number.isFinite(item.value))
+}
+
+export function calculateSampleSummary(values) {
+  const validValues = values.filter((value) => Number.isFinite(value))
+  const n = validValues.length
+
+  if (n === 0) {
+    return {
+      n: 0,
+      sampleMean: Number.NaN,
+      sampleStandardDeviation: Number.NaN,
+      min: Number.NaN,
+      max: Number.NaN,
+    }
+  }
+
+  const sampleMean = validValues.reduce((total, value) => total + value, 0) / n
+  const sumSquares = validValues.reduce(
+    (total, value) => total + (value - sampleMean) ** 2,
+    0,
+  )
+
+  return {
+    n,
+    sampleMean,
+    sampleStandardDeviation: n > 1 ? Math.sqrt(sumSquares / (n - 1)) : Number.NaN,
+    min: Math.min(...validValues),
+    max: Math.max(...validValues),
+  }
+}
+
+function buildSummary(rows, dataStatus, statusMessage) {
+  const summary = calculateSampleSummary(rows.map((row) => row.value))
+
+  return {
+    source: ibgeIpcaFallback.source,
+    dataset: ibgeIpcaFallback.dataset,
+    variable: ibgeIpcaFallback.variable,
+    unit: ibgeIpcaFallback.unit,
+    periods: rows.map((row) => row.period),
+    values: rows,
+    dataStatus,
+    statusMessage,
+    ...summary,
+  }
+}
+
+export function getIbgeIpcaFallbackSummary() {
+  const rows = parseIbgeIpcaData({ value: ibgeIpcaFallback.values })
+  const hasEnoughData = rows.length >= 2
+
+  return buildSummary(
+    rows,
+    hasEnoughData ? 'fallback' : 'error',
+    hasEnoughData
+      ? 'Usando dados públicos pré-carregados.'
+      : 'Fallback local sem valores suficientes para calcular o teste t.',
+  )
 }
 
 export async function getIbgeIpcaExampleWithFallback() {
   try {
-    return await getIbgeIpcaMonthlyVariationSummary()
+    const rawData = await fetchIbgeIpcaData()
+    const rows = parseIbgeIpcaData(rawData)
+    if (rows.length < 2) {
+      throw new Error('IBGE retornou menos de 2 valores válidos.')
+    }
+
+    return buildSummary(rows, 'online', 'Dados carregados do IBGE com sucesso.')
   } catch {
-    return summarizeIpcaRows(ibgeIpcaFallback.values, 'fallback')
+    const fallbackSummary = getIbgeIpcaFallbackSummary()
+    if (fallbackSummary.n < 2) return fallbackSummary
+
+    return {
+      ...fallbackSummary,
+      dataStatus: 'fallback',
+      statusMessage:
+        'Não foi possível acessar o IBGE. Usando dados públicos pré-carregados.',
+    }
   }
 }
 

@@ -25,7 +25,23 @@ function ResultDetail({ title, children }) {
 }
 
 export function HypothesisResult({ result }) {
-  if (!result) return null
+  if (!result) {
+    return (
+      <section className="flow-section result-section empty-result">
+        <div className="flow-heading">
+          <div className="numbered-title">
+            <span className="section-number">3</span>
+            <h2>Resultado</h2>
+          </div>
+          <span className="soft-badge">Aguardando cálculo</span>
+        </div>
+        <div className="empty-state">
+          <span aria-hidden="true">🦖</span>
+          <p>Preencha os dados e clique em calcular para ver a decisão.</p>
+        </div>
+      </section>
+    )
+  }
 
   const decisionClass = result.decision.rejectNull ? 'decision-reject' : 'decision-keep'
 

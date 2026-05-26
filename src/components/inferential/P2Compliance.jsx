@@ -2,10 +2,8 @@ const complianceItems = [
   'Opção 6: Teste de Hipóteses com cálculo do P-Valor',
   'Exercícios da Tarefa 8 incluídos',
   'Exemplo com dados públicos reais do IBGE',
-  'Fonte: IBGE/SIDRA — IPCA',
   'Interface integrada com Estatística Descritiva',
   'Modo p-valor informado e modo p-valor calculado',
-  'Modo p-valor calculado preservado',
 ]
 
 export function P2Compliance() {

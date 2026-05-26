@@ -39,17 +39,11 @@ export const ibgeIpcaPublicExample = {
     alternative: 'right',
     alpha: 0.05,
     pValue: null,
-    inputs: {
-      sampleMean: 0.3591666666666667,
-      sampleStandardDeviation: 0.2857663595378544,
-      sampleSize: 12,
-    },
-    publicDataSummary: {
-      ...ibgeIpcaFallback,
-      periods: ibgeIpcaFallback.values.map((item) => item.period),
-      dataStatus: 'fallback',
-    },
+    inputs: {},
+    publicDataSummary: null,
     dynamicConclusion: 'ibge-ipca',
+    question:
+      'Há evidência de que a variação média mensal do IPCA está acima de 0,40%?',
     typeIExplanation:
       'Erro Tipo I neste contexto seria concluir que a variação média mensal do IPCA está acima de 0,40%, rejeitando H₀, quando na verdade ela não está acima desse valor.',
     typeIIExplanation:

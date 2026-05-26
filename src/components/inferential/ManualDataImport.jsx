@@ -1,74 +1,111 @@
 import { useState } from 'react'
-import { formatNumber, parseNumericInput } from '../../utils/hypothesisTests'
+import { formatNumber } from '../../utils/hypothesisTests'
 
 function parseValues(rawValues) {
-  return rawValues
-    .split(/[\s,;]+/)
-    .map((value) => parseNumericInput(value))
+  const matches = rawValues.match(/[-+]?\d+(?:[,.]\d+)?/g) || []
+  return matches
+    .map((value) => Number(value.replace(',', '.')))
     .filter((value) => Number.isFinite(value))
 }
 
-function sampleStandardDeviation(values, mean) {
-  if (values.length <= 1) return Number.NaN
+function summarize(values) {
+  if (values.length === 0) return null
+
+  const mean = values.reduce((total, value) => total + value, 0) / values.length
   const sumSquares = values.reduce((total, value) => total + (value - mean) ** 2, 0)
-  return Math.sqrt(sumSquares / (values.length - 1))
+
+  return {
+    sampleSize: values.length,
+    sampleMean: mean,
+    sampleStandardDeviation:
+      values.length > 1 ? Math.sqrt(sumSquares / (values.length - 1)) : Number.NaN,
+  }
 }
 
 export function ManualDataImport({ onUseSample }) {
   const [rawValues, setRawValues] = useState('')
-  const values = parseValues(rawValues)
-  const mean =
-    values.length > 0
-      ? values.reduce((total, value) => total + value, 0) / values.length
-      : Number.NaN
-  const standardDeviation = sampleStandardDeviation(values, mean)
-  const canUseSample = values.length > 1 && Number.isFinite(standardDeviation)
+  const [summary, setSummary] = useState(null)
+  const [message, setMessage] = useState('Cole seus dados para calcular n, média e desvio padrão.')
+  const canUseSample = summary?.sampleSize > 1 && Number.isFinite(summary.sampleStandardDeviation)
+
+  const calculateSummary = () => {
+    const values = parseValues(rawValues)
+    const nextSummary = summarize(values)
+
+    if (!nextSummary) {
+      setSummary(null)
+      setMessage('Não foi possível identificar números válidos.')
+      return
+    }
+
+    if (nextSummary.sampleSize < 2) {
+      setSummary(nextSummary)
+      setMessage('Informe pelo menos 2 valores para calcular o desvio padrão.')
+      return
+    }
+
+    setSummary(nextSummary)
+    setMessage('')
+  }
 
   return (
     <div className="manual-inline-card">
       <div className="field">
+        <h3>Insira sua amostra</h3>
+        <p>
+          Cole números separados por vírgula, ponto e vírgula, espaço ou quebra
+          de linha.
+        </p>
         <label htmlFor="manualValues">Meus dados</label>
         <textarea
           id="manualValues"
           value={rawValues}
-          onChange={(event) => setRawValues(event.target.value)}
-          placeholder="5,1; 4,8; 5,0; 5,3"
+          onChange={(event) => {
+            setRawValues(event.target.value)
+            setSummary(null)
+            setMessage('Cole seus dados para calcular n, média e desvio padrão.')
+          }}
+          placeholder="Ex.: 5,1; 4,8; 5,0; 5,3"
         />
+        <button className="secondary-button" type="button" onClick={calculateSummary}>
+          Calcular resumo
+        </button>
       </div>
 
       <div className="manual-summary">
-        <span className="soft-badge">Resumo da amostra</span>
-        <dl className="data-list">
-          <div className="data-row">
-            <dt>n</dt>
-            <dd>
-              <strong>{values.length}</strong>
-            </dd>
-          </div>
-          <div className="data-row">
-            <dt>Média</dt>
-            <dd>
-              <strong>{formatNumber(mean, 6)}</strong>
-            </dd>
-          </div>
-          <div className="data-row">
-            <dt>Desvio padrão</dt>
-            <dd>
-              <strong>{formatNumber(standardDeviation, 6)}</strong>
-            </dd>
-          </div>
-        </dl>
+        <span className="soft-badge">
+          {summary ? 'Resumo da amostra' : 'Aguardando dados'}
+        </span>
+        {message ? <p className="status-text">{message}</p> : null}
+
+        {summary ? (
+          <dl className="data-list">
+            <div className="data-row">
+              <dt>n</dt>
+              <dd>
+                <strong>{summary.sampleSize}</strong>
+              </dd>
+            </div>
+            <div className="data-row">
+              <dt>Média</dt>
+              <dd>
+                <strong>{formatNumber(summary.sampleMean, 6)}</strong>
+              </dd>
+            </div>
+            <div className="data-row">
+              <dt>Desvio padrão</dt>
+              <dd>
+                <strong>{formatNumber(summary.sampleStandardDeviation, 6)}</strong>
+              </dd>
+            </div>
+          </dl>
+        ) : null}
+
         <button
           className="secondary-button"
           type="button"
           disabled={!canUseSample}
-          onClick={() =>
-            onUseSample({
-              sampleSize: values.length,
-              sampleMean: mean,
-              sampleStandardDeviation: standardDeviation,
-            })
-          }
+          onClick={() => onUseSample(summary)}
         >
           Usar no teste T
         </button>
