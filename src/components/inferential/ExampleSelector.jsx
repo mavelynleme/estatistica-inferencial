@@ -109,7 +109,7 @@ export function ExampleSelector({
       <div className="flow-heading">
         <div className="numbered-title">
           <span className="section-number">1</span>
-          <h2>Escolha o teste</h2>
+          <h2>Entrada de Dados</h2>
         </div>
         <span className="soft-badge">
           {selectedExample?.mode === 'given-p-value'
@@ -153,15 +153,14 @@ export function ExampleSelector({
         {isIbgeSelected ? (
           <div className="public-data-loader">
             <div>
-              <h3>Dados públicos do IBGE</h3>
+              <h3>Dados Públicos — IBGE/SIDRA</h3>
               <p>
-                Escolha uma série pública do SIDRA e carregue os últimos
-                períodos para preencher automaticamente o teste t.
+                Escolha indicador, período e localidade para preencher automaticamente o teste t.
               </p>
             </div>
 
             <div className="field public-dataset-field">
-              <label htmlFor="publicDataset">Série IBGE</label>
+              <label htmlFor="publicDataset">Indicador</label>
               <select
                 id="publicDataset"
                 value={selectedPublicDatasetId}
@@ -184,7 +183,7 @@ export function ExampleSelector({
             </div>
 
             <div className="field public-period-count-field">
-              <label htmlFor="publicPeriodCount">Períodos da consulta</label>
+              <label htmlFor="publicPeriodCount">Período</label>
               <select
                 id="publicPeriodCount"
                 value={publicPeriodCount}
@@ -193,6 +192,11 @@ export function ExampleSelector({
                 <option value={12}>Últimos 12 períodos</option>
                 <option value={24}>Últimos 24 períodos</option>
               </select>
+            </div>
+
+            <div className="field public-locality-field">
+              <label htmlFor="publicLocality">Localidade</label>
+              <input id="publicLocality" value="Brasil" readOnly />
             </div>
 
             <div className="source-verification">
@@ -276,7 +280,7 @@ export function ExampleSelector({
                 disabled={isLoadingPublicData}
                 onClick={onUseFallbackData}
               >
-                Usar dados pré-carregados
+                Usar fallback local
               </button>
             </div>
             <p className="network-proof-helper">
@@ -304,7 +308,7 @@ export function ExampleSelector({
               <>
                 <div className="public-period-panel">
                   <div className="public-period-heading">
-                    <h4>Períodos disponíveis</h4>
+                    <h4>Tabela selecionável</h4>
                     <span className="soft-badge">
                       {selectedPeriodCount} selecionados
                     </span>
@@ -374,7 +378,7 @@ export function ExampleSelector({
                   disabled={selectedPeriodCount < 2}
                   onClick={onUseSelectedPublicData}
                 >
-                  Usar selecionados no teste T
+                  Aplicar ao teste
                 </button>
               </>
             ) : null}

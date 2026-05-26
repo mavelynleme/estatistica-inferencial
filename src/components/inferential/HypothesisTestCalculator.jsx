@@ -8,8 +8,8 @@ import {
   DEFAULT_IBGE_DATASET_ID,
   DEFAULT_PUBLIC_PERIOD_COUNT,
   calculateSampleSummary,
-  getIbgeDatasetFallbackSummary,
   getIbgeDatasetApiUrl,
+  getIbgeDatasetFallbackSummary,
   getIbgeDatasetSummaryWithFallback,
   getIbgePublicDatasetOptions,
 } from '../../services/publicDataService'
@@ -55,6 +55,29 @@ const alternativeLabels = {
   left: 'Teste unilateral à esquerda',
   right: 'Teste unilateral à direita',
 }
+
+const analysisModules = [
+  {
+    id: 'hypothesis',
+    title: 'Teste de Hipóteses',
+    helper: 'Fluxo principal',
+  },
+  {
+    id: 'ibge',
+    title: 'Dados Públicos IBGE',
+    helper: 'SIDRA e fallback',
+  },
+  {
+    id: 'manual',
+    title: 'Modo Manual',
+    helper: 'Amostra própria',
+  },
+  {
+    id: 'exercises',
+    title: 'Exercícios da Tarefa',
+    helper: 'Tarefa 8 e Aula 9',
+  },
+]
 
 function toInputValue(value) {
   return value === null || value === undefined ? '' : String(value).replace('.', ',')
@@ -135,7 +158,7 @@ function getDataBadge({ form, selectedOption, publicDataStatus }) {
 
 function getHelperText({ form, selectedOption }) {
   if (selectedOption === 'ibge-ipca') {
-    return 'Carregue os dados públicos ou use o fallback para preencher o teste.'
+    return 'Revise o teste T preenchido pelos dados públicos ou pelo fallback local.'
   }
   if (selectedOption === 'manual') {
     return 'Cole sua amostra ou preencha os campos manualmente.'
@@ -144,6 +167,157 @@ function getHelperText({ form, selectedOption }) {
     return 'O exercício já informa o p-valor. A calculadora compara com α.'
   }
   return 'Preencha os dados do teste para calcular o p-valor.'
+}
+
+function TestConfigurationFields({ form, updateField }) {
+  return (
+    <div className="form-grid compact-form">
+      {form.mode === 'given-p-value' ? (
+        <div className="field span-2">
+          <label htmlFor="context">Contexto</label>
+          <textarea
+            id="context"
+            value={form.context}
+            onChange={(event) => updateField('context', event.target.value)}
+          />
+        </div>
+      ) : (
+        <div className="field">
+          <label htmlFor="testType">Tipo de teste</label>
+          <select
+            id="testType"
+            value={form.testType}
+            onChange={(event) => updateField('testType', event.target.value)}
+          >
+            <option value="mean-z">Teste Z para média</option>
+            <option value="mean-t">Teste T para média</option>
+            <option value="proportion-z">Teste Z para proporção</option>
+          </select>
+        </div>
+      )}
+
+      <div className="field">
+        <label htmlFor="hypothesizedValue">Valor de referência</label>
+        <input
+          id="hypothesizedValue"
+          value={form.hypothesizedValue}
+          onChange={(event) => updateField('hypothesizedValue', event.target.value)}
+          placeholder={form.parameter === 'p' ? 'Ex.: 0,50' : 'Ex.: 5'}
+        />
+      </div>
+
+      <div className="field">
+        <label htmlFor="alternative">
+          {form.mode === 'given-p-value' ? 'Tipo de teste' : 'Hipótese alternativa'}
+        </label>
+        <select
+          id="alternative"
+          value={form.alternative}
+          onChange={(event) => updateField('alternative', event.target.value)}
+        >
+          <option value="two-sided">bilateral</option>
+          <option value="left">unilateral à esquerda</option>
+          <option value="right">unilateral à direita</option>
+        </select>
+      </div>
+
+      <div className="field">
+        <label htmlFor="alpha">α (nível de significância)</label>
+        <input
+          id="alpha"
+          value={form.alpha}
+          onChange={(event) => updateField('alpha', event.target.value)}
+          placeholder="0,05 ou 5%"
+        />
+      </div>
+
+      {form.mode === 'given-p-value' ? (
+        <div className="field">
+          <label htmlFor="pValue">p-valor</label>
+          <input
+            id="pValue"
+            value={form.pValue}
+            onChange={(event) => updateField('pValue', event.target.value)}
+            placeholder="Ex.: 0,125"
+          />
+        </div>
+      ) : null}
+
+      {form.mode === 'calculated' && form.testType !== 'proportion-z' ? (
+        <>
+          <div className="field">
+            <label htmlFor="sampleMean">Média amostral (x̄)</label>
+            <input
+              id="sampleMean"
+              value={form.sampleMean}
+              onChange={(event) => updateField('sampleMean', event.target.value)}
+              placeholder="Ex.: 4,85"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="sampleSize">n (tamanho da amostra)</label>
+            <input
+              id="sampleSize"
+              value={form.sampleSize}
+              onChange={(event) => updateField('sampleSize', event.target.value)}
+              placeholder="Ex.: 30"
+            />
+          </div>
+        </>
+      ) : null}
+
+      {form.mode === 'calculated' && form.testType === 'mean-z' ? (
+        <div className="field">
+          <label htmlFor="populationStandardDeviation">Desvio padrão populacional (σ)</label>
+          <input
+            id="populationStandardDeviation"
+            value={form.populationStandardDeviation}
+            onChange={(event) =>
+              updateField('populationStandardDeviation', event.target.value)
+            }
+            placeholder="Ex.: 2,4"
+          />
+        </div>
+      ) : null}
+
+      {form.mode === 'calculated' && form.testType === 'mean-t' ? (
+        <div className="field">
+          <label htmlFor="sampleStandardDeviation">Desvio padrão (s)</label>
+          <input
+            id="sampleStandardDeviation"
+            value={form.sampleStandardDeviation}
+            onChange={(event) =>
+              updateField('sampleStandardDeviation', event.target.value)
+            }
+            placeholder="Ex.: 1,20"
+          />
+        </div>
+      ) : null}
+
+      {form.mode === 'calculated' && form.testType === 'proportion-z' ? (
+        <>
+          <div className="field">
+            <label htmlFor="successes">Sucessos</label>
+            <input
+              id="successes"
+              value={form.successes}
+              onChange={(event) => updateField('successes', event.target.value)}
+              placeholder="Ex.: 42"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="sampleSizeProportion">n (tamanho da amostra)</label>
+            <input
+              id="sampleSizeProportion"
+              value={form.sampleSize}
+              onChange={(event) => updateField('sampleSize', event.target.value)}
+              placeholder="Ex.: 100"
+            />
+          </div>
+        </>
+      ) : null}
+    </div>
+  )
 }
 
 export function HypothesisTestCalculator() {
@@ -163,6 +337,7 @@ export function HypothesisTestCalculator() {
     DEFAULT_PUBLIC_PERIOD_COUNT,
   )
   const [isLoadingPublicData, setIsLoadingPublicData] = useState(false)
+  const [activeModule, setActiveModule] = useState('hypothesis')
   const publicDatasetOptions = getIbgePublicDatasetOptions()
   const selectedPublicApiUrl = getIbgeDatasetApiUrl(
     selectedPublicDatasetId,
@@ -186,6 +361,7 @@ export function HypothesisTestCalculator() {
   }
 
   const selectManual = () => {
+    setActiveModule('manual')
     setSelectedOption('manual')
     setSelectedExample(null)
     setPublicDataSummary(null)
@@ -198,6 +374,7 @@ export function HypothesisTestCalculator() {
 
   const selectIbge = () => {
     const baseExample = hypothesisExamples.find((example) => example.id === 'ibge-ipca')
+    setActiveModule('ibge')
     setSelectedOption('ibge-ipca')
     setSelectedExample(baseExample)
     setPublicDataSummary(null)
@@ -259,6 +436,7 @@ export function HypothesisTestCalculator() {
       successes: toInputValue(example.inputs?.successes),
     }
 
+    setActiveModule('exercises')
     setSelectedOption(example.id)
     setSelectedExample(example)
     setPublicDataSummary(null)
@@ -317,6 +495,7 @@ export function HypothesisTestCalculator() {
       sampleSize: toInputValue(summary.n),
     }
 
+    setActiveModule('ibge')
     setSelectedOption('ibge-ipca')
     setSelectedExample(example)
     setForm(nextForm)
@@ -552,6 +731,7 @@ export function HypothesisTestCalculator() {
   }
 
   const useManualSample = ({ sampleSize, sampleMean, sampleStandardDeviation }) => {
+    setActiveModule('manual')
     setSelectedOption('manual')
     setSelectedExample(null)
     setPublicDataSummary(null)
@@ -569,256 +749,148 @@ export function HypothesisTestCalculator() {
     }))
   }
 
+  const selectAnalysisModule = (moduleId) => {
+    setActiveModule(moduleId)
+    if (moduleId === 'ibge') selectIbge()
+    if (moduleId === 'manual') selectManual()
+  }
+
   return (
     <section className="inferential-minimal">
       <div className="page-section inferential-page">
-        <div className="minimal-page-heading">
+        <div className="analysis-page-heading">
           <div>
             <p className="eyebrow">INFERENCIAL</p>
-            <h1>Teste de Hipóteses</h1>
-            <p>Calcule ou interprete o p-valor de forma simples.</p>
+            <h1>Calculadora Estatística</h1>
+            <p>Ambiente de análise para entrada de dados, configuração do teste e relatório do resultado.</p>
           </div>
-          <div className="mascot-bubble" aria-hidden="true">🦖</div>
         </div>
 
-        <ExampleSelector
-          selectedExampleId={selectedExample?.id}
-          selectedOption={selectedOption}
-          publicDataStatus={publicDataStatus}
-          publicDataSummary={publicDataSummary}
-          isLoadingPublicData={isLoadingPublicData}
-          publicDatasetOptions={publicDatasetOptions}
-          selectedPublicDatasetId={selectedPublicDatasetId}
-          selectedPublicPeriods={selectedPublicPeriods}
-          publicPeriodCount={publicPeriodCount}
-          selectedPublicApiUrl={selectedPublicApiUrl}
-          onLoadPublicData={loadPublicData}
-          onSelectExample={applyExample}
-          onSelectManual={selectManual}
-          onSelectIbge={selectIbge}
-          onSelectPublicDataset={selectPublicDataset}
-          onSelectPublicPeriodCount={selectPublicPeriodCount}
-          onTogglePublicPeriod={togglePublicPeriod}
-          onSelectAllPublicPeriods={selectAllPublicPeriods}
-          onClearPublicPeriodSelection={clearPublicPeriodSelection}
-          onUseSelectedPublicData={useSelectedPublicData}
-          onUseFallbackData={useFallbackData}
-        />
-
-        <section className="flow-section">
-          <div className="flow-heading">
-            <div>
-              <div className="numbered-title">
-                <span className="section-number">2</span>
-                <h2>Dados do teste</h2>
-              </div>
-              <p className="section-helper">
-                {getHelperText({ form, selectedOption })}
-              </p>
-            </div>
-            <span className="soft-badge">
-              {getDataBadge({ form, selectedOption, publicDataStatus })}
-            </span>
-          </div>
-
-          {selectedOption === 'manual' ? (
-            <ManualDataImport onUseSample={useManualSample} />
-          ) : null}
-
-          <form className="soft-form-card" onSubmit={calculate}>
-            <div className="form-grid compact-form">
-              {form.mode === 'given-p-value' ? (
-                <div className="field span-2">
-                  <label htmlFor="context">Contexto</label>
-                  <textarea
-                    id="context"
-                    value={form.context}
-                    onChange={(event) => updateField('context', event.target.value)}
-                  />
-                </div>
-              ) : (
-                <div className="field">
-                  <label htmlFor="testType">Tipo de teste</label>
-                  <select
-                    id="testType"
-                    value={form.testType}
-                    onChange={(event) => updateField('testType', event.target.value)}
-                  >
-                    <option value="mean-z">Teste Z para média</option>
-                    <option value="mean-t">Teste T para média</option>
-                    <option value="proportion-z">Teste Z para proporção</option>
-                  </select>
-                </div>
-              )}
-
-              <div className="field">
-                <label htmlFor="hypothesizedValue">Valor de referência</label>
-                <input
-                  id="hypothesizedValue"
-                  value={form.hypothesizedValue}
-                  onChange={(event) => updateField('hypothesizedValue', event.target.value)}
-                  placeholder={form.parameter === 'p' ? 'Ex.: 0,50' : 'Ex.: 5'}
-                />
-              </div>
-
-              <div className="field">
-                <label htmlFor="alternative">
-                  {form.mode === 'given-p-value'
-                    ? 'Tipo de teste'
-                    : 'Hipótese alternativa'}
-                </label>
-                <select
-                  id="alternative"
-                  value={form.alternative}
-                  onChange={(event) => updateField('alternative', event.target.value)}
+        <div className="analysis-shell">
+          <aside className="analysis-sidebar" aria-label="Análises">
+            <h2>Análises</h2>
+            <div className="analysis-menu" role="tablist" aria-label="Módulos de análise">
+              {analysisModules.map((module) => (
+                <button
+                  className={`analysis-menu-item ${activeModule === module.id ? 'active' : ''}`}
+                  key={module.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeModule === module.id}
+                  onClick={() => selectAnalysisModule(module.id)}
                 >
-                  <option value="two-sided">bilateral</option>
-                  <option value="left">unilateral à esquerda</option>
-                  <option value="right">unilateral à direita</option>
-                </select>
-              </div>
-
-              <div className="field">
-                <label htmlFor="alpha">α (nível de significância)</label>
-                <input
-                  id="alpha"
-                  value={form.alpha}
-                  onChange={(event) => updateField('alpha', event.target.value)}
-                  placeholder="0,05 ou 5%"
-                />
-              </div>
-
-              {form.mode === 'given-p-value' ? (
-                <div className="field">
-                  <label htmlFor="pValue">p-valor</label>
-                  <input
-                    id="pValue"
-                    value={form.pValue}
-                    onChange={(event) => updateField('pValue', event.target.value)}
-                    placeholder="Ex.: 0,125"
-                  />
-                </div>
-              ) : null}
-
-              {form.mode === 'calculated' && form.testType !== 'proportion-z' ? (
-                <>
-                  <div className="field">
-                    <label htmlFor="sampleMean">Média amostral (x̄)</label>
-                    <input
-                      id="sampleMean"
-                      value={form.sampleMean}
-                      onChange={(event) => updateField('sampleMean', event.target.value)}
-                      placeholder="Ex.: 4,85"
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="sampleSize">n (tamanho da amostra)</label>
-                    <input
-                      id="sampleSize"
-                      value={form.sampleSize}
-                      onChange={(event) => updateField('sampleSize', event.target.value)}
-                      placeholder="Ex.: 30"
-                    />
-                  </div>
-                </>
-              ) : null}
-
-              {form.mode === 'calculated' && form.testType === 'mean-z' ? (
-                <div className="field">
-                  <label htmlFor="populationStandardDeviation">Desvio padrão populacional (σ)</label>
-                  <input
-                    id="populationStandardDeviation"
-                    value={form.populationStandardDeviation}
-                    onChange={(event) =>
-                      updateField('populationStandardDeviation', event.target.value)
-                    }
-                    placeholder="Ex.: 2,4"
-                  />
-                </div>
-              ) : null}
-
-              {form.mode === 'calculated' && form.testType === 'mean-t' ? (
-                <div className="field">
-                  <label htmlFor="sampleStandardDeviation">Desvio padrão (s)</label>
-                  <input
-                    id="sampleStandardDeviation"
-                    value={form.sampleStandardDeviation}
-                    onChange={(event) =>
-                      updateField('sampleStandardDeviation', event.target.value)
-                    }
-                    placeholder="Ex.: 1,20"
-                  />
-                </div>
-              ) : null}
-
-              {form.mode === 'calculated' && form.testType === 'proportion-z' ? (
-                <>
-                  <div className="field">
-                    <label htmlFor="successes">Sucessos</label>
-                    <input
-                      id="successes"
-                      value={form.successes}
-                      onChange={(event) => updateField('successes', event.target.value)}
-                      placeholder="Ex.: 42"
-                    />
-                  </div>
-                  <div className="field">
-                    <label htmlFor="sampleSizeProportion">n (tamanho da amostra)</label>
-                    <input
-                      id="sampleSizeProportion"
-                      value={form.sampleSize}
-                      onChange={(event) => updateField('sampleSize', event.target.value)}
-                      placeholder="Ex.: 100"
-                    />
-                  </div>
-                </>
-              ) : null}
+                  <span>{module.title}</span>
+                  <small>{module.helper}</small>
+                </button>
+              ))}
             </div>
+          </aside>
 
-            {selectedOption === 'ibge-ipca' && publicDataSummary?.n >= 2 ? (
-              <div className="question-card">
-                <span className="soft-badge">Pergunta</span>
-                <p>{publicDataSummary.question}</p>
-                <div className="hypotheses">
-                  <span>{publicDataSummary.nullHypothesisText}</span>
-                  <span>{publicDataSummary.alternativeHypothesisText}</span>
+          <div className="analysis-workspace">
+            <ExampleSelector
+              selectedExampleId={selectedExample?.id}
+              selectedOption={selectedOption}
+              publicDataStatus={publicDataStatus}
+              publicDataSummary={publicDataSummary}
+              isLoadingPublicData={isLoadingPublicData}
+              publicDatasetOptions={publicDatasetOptions}
+              selectedPublicDatasetId={selectedPublicDatasetId}
+              selectedPublicPeriods={selectedPublicPeriods}
+              publicPeriodCount={publicPeriodCount}
+              selectedPublicApiUrl={selectedPublicApiUrl}
+              onLoadPublicData={loadPublicData}
+              onSelectExample={applyExample}
+              onSelectManual={selectManual}
+              onSelectIbge={selectIbge}
+              onSelectPublicDataset={selectPublicDataset}
+              onSelectPublicPeriodCount={selectPublicPeriodCount}
+              onTogglePublicPeriod={togglePublicPeriod}
+              onSelectAllPublicPeriods={selectAllPublicPeriods}
+              onClearPublicPeriodSelection={clearPublicPeriodSelection}
+              onUseSelectedPublicData={useSelectedPublicData}
+              onUseFallbackData={useFallbackData}
+            />
+
+            <form onSubmit={calculate}>
+              <section className="flow-section">
+                <div className="flow-heading">
+                  <div>
+                    <div className="numbered-title">
+                      <span className="section-number">2</span>
+                      <h2>Configuração do Teste</h2>
+                    </div>
+                    <p className="section-helper">
+                      {getHelperText({ form, selectedOption })}
+                    </p>
+                  </div>
+                  <span className="soft-badge">
+                    {getDataBadge({ form, selectedOption, publicDataStatus })}
+                  </span>
                 </div>
-              </div>
-            ) : null}
 
-            {errors.length > 0 ? (
-              <ul className="error-list">
-                {errors.map((error) => (
-                  <li key={error}>{error}</li>
-                ))}
-              </ul>
-            ) : null}
+                {selectedOption === 'manual' ? (
+                  <ManualDataImport onUseSample={useManualSample} />
+                ) : null}
 
-            {warnings.length > 0 ? (
-              <ul className="warning-list">
-                {warnings.map((warning) => (
-                  <li key={warning}>{warning}</li>
-                ))}
-              </ul>
-            ) : null}
+                <div className="soft-form-card">
+                  <TestConfigurationFields form={form} updateField={updateField} />
 
-            <div className="form-actions">
-              <button className="primary-button" type="submit">
-                Calcular resultado
-              </button>
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={selectManual}
-              >
-                Limpar
-              </button>
-            </div>
-          </form>
-        </section>
+                  {selectedOption === 'ibge-ipca' && publicDataSummary?.n >= 2 ? (
+                    <div className="question-card">
+                      <span className="soft-badge">Pergunta</span>
+                      <p>{publicDataSummary.question}</p>
+                      <div className="hypotheses">
+                        <span>{publicDataSummary.nullHypothesisText}</span>
+                        <span>{publicDataSummary.alternativeHypothesisText}</span>
+                      </div>
+                    </div>
+                  ) : null}
 
-        <HypothesisResult result={result} />
-        <P2Compliance />
+                  {errors.length > 0 ? (
+                    <ul className="error-list">
+                      {errors.map((error) => (
+                        <li key={error}>{error}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+
+                  {warnings.length > 0 ? (
+                    <ul className="warning-list">
+                      {warnings.map((warning) => (
+                        <li key={warning}>{warning}</li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              </section>
+
+              <section className="flow-section run-section">
+                <div className="flow-heading">
+                  <div className="numbered-title">
+                    <span className="section-number">3</span>
+                    <h2>Executar Análise</h2>
+                  </div>
+                  <span className="soft-badge">P-valor</span>
+                </div>
+                <div className="run-actions">
+                  <button className="primary-button" type="submit">
+                    Calcular p-valor
+                  </button>
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={selectManual}
+                  >
+                    Limpar
+                  </button>
+                </div>
+              </section>
+            </form>
+
+            <HypothesisResult result={result} />
+            <P2Compliance />
+          </div>
+        </div>
       </div>
     </section>
   )
