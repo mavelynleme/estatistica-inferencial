@@ -715,6 +715,18 @@ select option {
   font-size: 0.82rem;
 }
 
+.data-row dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.network-proof-helper {
+  margin: -2px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
 .public-period-panel {
   display: grid;
   gap: 10px;

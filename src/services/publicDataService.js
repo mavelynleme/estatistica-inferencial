@@ -17,6 +17,13 @@ function getIbgeDataset(datasetId = DEFAULT_IBGE_DATASET_ID) {
   )
 }
 
+export function getIbgeDatasetApiUrl(
+  datasetId = DEFAULT_IBGE_DATASET_ID,
+  periodCount = DEFAULT_PUBLIC_PERIOD_COUNT,
+) {
+  return buildSidraUrl(getIbgeDataset(datasetId), periodCount)
+}
+
 export function buildSidraUrl(dataset, periodCount = DEFAULT_PUBLIC_PERIOD_COUNT) {
   if (!dataset?.apiUrlTemplate) return ''
 
@@ -172,7 +179,7 @@ export function getIbgeDatasetFallbackSummary(
     dataset,
     hasEnoughData ? 'fallback' : 'error',
     hasEnoughData
-      ? 'Dados públicos pré-carregados.'
+      ? 'Fallback local.'
       : 'Fallback local sem valores suficientes para calcular o teste t.',
     periodCount,
   )
@@ -195,7 +202,13 @@ export async function getIbgeDatasetSummaryWithFallback(
       throw new Error('IBGE retornou menos de 2 valores válidos.')
     }
 
-    return buildSummary(rows, dataset, 'online', 'IBGE/SIDRA online.', periodCount)
+    return buildSummary(
+      rows,
+      dataset,
+      'online',
+      'Dados carregados online.',
+      periodCount,
+    )
   } catch {
     const fallbackSummary = getIbgeDatasetFallbackSummary(dataset.id, periodCount)
     if (fallbackSummary.n < 2) return fallbackSummary
@@ -203,7 +216,7 @@ export async function getIbgeDatasetSummaryWithFallback(
     return {
       ...fallbackSummary,
       dataStatus: 'fallback',
-      statusMessage: 'Dados públicos pré-carregados.',
+      statusMessage: 'Fallback local.',
     }
   }
 }

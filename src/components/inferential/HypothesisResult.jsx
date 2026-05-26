@@ -130,11 +130,27 @@ export function HypothesisResult({ result }) {
             <p>{result.typeIIExplanation}</p>
           </ResultDetail>
 
-          <ResultDetail title="Fonte dos dados">
+          <ResultDetail title="Origem da amostra">
             <p>{result.sourceLabel || 'Preenchimento manual'}</p>
             {result.publicDataSummary ? (
               <div className="source-detail-stack">
                 <dl className="data-list">
+                  <div className="data-row">
+                    <dt>Status</dt>
+                    <dd>
+                      <strong>
+                        {result.publicDataSummary.dataStatus === 'online'
+                          ? 'Dados carregados online'
+                          : 'Fallback local'}
+                      </strong>
+                    </dd>
+                  </div>
+                  <div className="data-row">
+                    <dt>Indicador</dt>
+                    <dd>
+                      <strong>{result.publicDataSummary.label}</strong>
+                    </dd>
+                  </div>
                   <div className="data-row">
                     <dt>Origem</dt>
                     <dd>
@@ -157,19 +173,37 @@ export function HypothesisResult({ result }) {
                     </dd>
                   </div>
                   <div className="data-row">
-                    <dt>Status</dt>
+                    <dt>Períodos selecionados</dt>
+                    <dd>
+                      <strong>{result.publicDataSummary.periods.join(', ')}</strong>
+                    </dd>
+                  </div>
+                  <div className="data-row">
+                    <dt>Valores selecionados</dt>
                     <dd>
                       <strong>
-                        {result.publicDataSummary.dataStatus === 'online'
-                          ? 'Dados carregados online'
-                          : 'Usando fallback local'}
+                        {result.publicDataSummary.values
+                          .map(
+                            (row) =>
+                              `${row.period}: ${formatNumber(row.value, 6)}${result.publicDataSummary.unit}`,
+                          )
+                          .join(', ')}
                       </strong>
                     </dd>
                   </div>
                   <div className="data-row">
-                    <dt>Períodos selecionados</dt>
+                    <dt>Fonte oficial</dt>
                     <dd>
-                      <strong>{result.publicDataSummary.periods.join(', ')}</strong>
+                      <strong>
+                        {result.publicDataSummary.sourceUrl ||
+                          result.publicDataSummary.officialPageUrl}
+                      </strong>
+                    </dd>
+                  </div>
+                  <div className="data-row">
+                    <dt>URL da API</dt>
+                    <dd>
+                      <strong>{result.publicDataSummary.apiUrl}</strong>
                     </dd>
                   </div>
                   {result.publicDataSummary.dataStatus === 'fallback' ? (

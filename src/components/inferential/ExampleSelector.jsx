@@ -36,10 +36,18 @@ const choices = [
 
 const publicStatusLabels = {
   idle: 'Aguardando carregamento',
-  loading: 'Aguardando carregamento',
-  online: 'IBGE/SIDRA online',
-  fallback: 'Dados públicos pré-carregados',
+  loading: 'Consultando IBGE...',
+  online: 'Dados carregados online',
+  fallback: 'Fallback local',
   error: 'Erro ao carregar',
+}
+
+const publicStatusDescriptions = {
+  idle: 'Aguardando carregamento',
+  loading: 'Consultando IBGE...',
+  online: 'online',
+  fallback: 'fallback',
+  error: 'erro',
 }
 
 export function ExampleSelector({
@@ -52,6 +60,7 @@ export function ExampleSelector({
   selectedPublicDatasetId,
   selectedPublicPeriods,
   publicPeriodCount,
+  selectedPublicApiUrl,
   onLoadPublicData,
   onSelectExample,
   onSelectManual,
@@ -78,7 +87,7 @@ export function ExampleSelector({
   )
   const officialSourceUrl =
     selectedPublicDataset?.sourceUrl || selectedPublicDataset?.officialPageUrl
-  const apiUrl = publicDataSummary?.apiUrl
+  const apiUrl = publicDataSummary?.apiUrl || selectedPublicApiUrl
 
   const selectChoice = (id) => {
     if (id === 'manual') {
@@ -193,6 +202,10 @@ export function ExampleSelector({
               </div>
               <dl className="compact-summary public-source-summary">
                 <div>
+                  <dt>Indicador</dt>
+                  <dd>{selectedPublicDataset?.label}</dd>
+                </div>
+                <div>
                   <dt>Origem</dt>
                   <dd>{selectedPublicDataset?.sourceName || 'IBGE/SIDRA'}</dd>
                 </div>
@@ -209,9 +222,17 @@ export function ExampleSelector({
                       : ''}
                   </dd>
                 </div>
+                <div>
+                  <dt>Período consultado</dt>
+                  <dd>Últimos {publicPeriodCount} períodos</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{publicStatusDescriptions[statusKey]}</dd>
+                </div>
                 {publicDataSummary?.dataStatus === 'fallback' ? (
                   <div>
-                    <dt>Fallback</dt>
+                    <dt>Última atualização do fallback</dt>
                     <dd>{publicDataSummary.fallbackGeneratedAt}</dd>
                   </div>
                 ) : null}
@@ -225,27 +246,19 @@ export function ExampleSelector({
                 >
                   Ver fonte oficial
                 </a>
-                {apiUrl ? (
-                  <a
-                    className="secondary-button source-link-button"
-                    href={apiUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Ver URL da API
-                  </a>
-                ) : (
-                  <button className="secondary-button" type="button" disabled>
-                    Ver URL da API
-                  </button>
-                )}
+                <a
+                  className="secondary-button source-link-button"
+                  href={apiUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Ver URL da API
+                </a>
               </div>
-              {apiUrl ? (
-                <details className="source-url-details">
-                  <summary>URL consultada</summary>
-                  <p className="muted source-url-text">{apiUrl}</p>
-                </details>
-              ) : null}
+              <details className="source-url-details">
+                <summary>URL consultada</summary>
+                <p className="muted source-url-text">URL consultada: {apiUrl}</p>
+              </details>
             </div>
 
             <div className="public-data-actions">
@@ -266,6 +279,10 @@ export function ExampleSelector({
                 Usar dados pré-carregados
               </button>
             </div>
+            <p className="network-proof-helper">
+              Para comprovar a consulta online, abra F12 &gt; Network &gt;
+              Fetch/XHR e clique em Carregar dados do IBGE.
+            </p>
 
             {publicDataSummary?.statusMessage ? (
               <p
