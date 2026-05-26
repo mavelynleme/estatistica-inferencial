@@ -1,5 +1,6 @@
 export function Header({
   activeView,
+  showNavigation = true,
   onNavigateHome,
   onNavigateInferential,
   onOpenDescriptive,
@@ -10,21 +11,23 @@ export function Header({
         <button className="brand-button" type="button" onClick={onNavigateHome}>
           <span className="brand-title">Calculadora Estatística</span>
         </button>
-        <nav className="header-nav" aria-label="Navegação principal">
-          <button className="nav-button" type="button" onClick={onNavigateHome}>
-            Home
-          </button>
-          <button className="nav-button" type="button" onClick={onOpenDescriptive}>
-            Descritiva
-          </button>
-          <button
-            className={`nav-button ${activeView === 'inferential' ? 'active' : ''}`}
-            type="button"
-            onClick={onNavigateInferential}
-          >
-            Inferencial
-          </button>
-        </nav>
+        {showNavigation ? (
+          <nav className="header-nav" aria-label="Navegação principal">
+            <button className="nav-button" type="button" onClick={onNavigateHome}>
+              Home
+            </button>
+            <button className="nav-button" type="button" onClick={onOpenDescriptive}>
+              Descritiva
+            </button>
+            <button
+              className={`nav-button ${activeView === 'inferential' ? 'active' : ''}`}
+              type="button"
+              onClick={onNavigateInferential}
+            >
+              Inferencial
+            </button>
+          </nav>
+        ) : null}
       </div>
     </header>
   )

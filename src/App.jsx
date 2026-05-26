@@ -4,7 +4,7 @@ import { Header } from './components/layout/Header'
 import { HomePage } from './components/home/HomePage'
 import { HypothesisTestCalculator } from './components/inferential/HypothesisTestCalculator'
 
-export const DESCRIPTIVE_CALCULATOR_URL = 'DESCRIPTIVE_CALCULATOR_URL'
+export const DESCRIPTIVE_CALCULATOR_URL = 'https://calculadora-estatistica.vercel.app/'
 
 function App() {
   const [view, setView] = useState('home')
@@ -17,6 +17,7 @@ function App() {
     <div className="app-shell">
       <Header
         activeView={view}
+        showNavigation={view !== 'home'}
         onNavigateHome={() => setView('home')}
         onNavigateInferential={() => setView('inferential')}
         onOpenDescriptive={openDescriptiveCalculator}

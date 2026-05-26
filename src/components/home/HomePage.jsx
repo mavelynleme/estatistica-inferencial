@@ -3,8 +3,10 @@ export function HomePage({ onOpenDescriptive, onOpenInferential }) {
     <section className="home-minimal">
       <div className="page-section">
         <div className="home-heading">
-          <p className="eyebrow">Plataforma integrada</p>
-          <h1>Calculadora Estatística</h1>
+          <div className="home-title-row">
+            <h1>Calculadora Estatística</h1>
+            <span className="home-mascot" aria-hidden="true">🦖</span>
+          </div>
           <p>Escolha uma das áreas abaixo para iniciar.</p>
         </div>
 
