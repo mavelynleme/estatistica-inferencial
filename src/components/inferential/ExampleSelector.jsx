@@ -109,7 +109,7 @@ export function ExampleSelector({
       <div className="flow-heading">
         <div className="numbered-title">
           <span className="section-number">1</span>
-          <h2>Entrada de Dados</h2>
+          <h2>Escolha o teste</h2>
         </div>
         <span className="soft-badge">
           {selectedExample?.mode === 'given-p-value'

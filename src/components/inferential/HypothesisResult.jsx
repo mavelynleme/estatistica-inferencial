@@ -39,8 +39,8 @@ export function HypothesisResult({ result }) {
       <section className="flow-section result-section empty-result">
         <div className="flow-heading">
           <div className="numbered-title">
-            <span className="section-number">4</span>
-            <h2>Relatório do Resultado</h2>
+            <span className="section-number">3</span>
+            <h2>Resultado</h2>
           </div>
           <span className="soft-badge">Aguardando cálculo</span>
         </div>
@@ -62,8 +62,8 @@ export function HypothesisResult({ result }) {
     <section className="flow-section result-section">
       <div className="flow-heading">
         <div className="numbered-title">
-          <span className="section-number">4</span>
-          <h2>Relatório do Resultado</h2>
+          <span className="section-number">3</span>
+          <h2>Resultado</h2>
         </div>
         <span className="soft-badge">Saída estatística</span>
       </div>

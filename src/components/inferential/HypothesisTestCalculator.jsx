@@ -56,29 +56,6 @@ const alternativeLabels = {
   right: 'Teste unilateral à direita',
 }
 
-const analysisModules = [
-  {
-    id: 'hypothesis',
-    title: 'Teste de Hipóteses',
-    helper: 'Fluxo principal',
-  },
-  {
-    id: 'ibge',
-    title: 'Dados Públicos IBGE',
-    helper: 'SIDRA e fallback',
-  },
-  {
-    id: 'manual',
-    title: 'Modo Manual',
-    helper: 'Amostra própria',
-  },
-  {
-    id: 'exercises',
-    title: 'Exercícios da Tarefa',
-    helper: 'Tarefa 8 e Aula 9',
-  },
-]
-
 function toInputValue(value) {
   return value === null || value === undefined ? '' : String(value).replace('.', ',')
 }
@@ -337,7 +314,6 @@ export function HypothesisTestCalculator() {
     DEFAULT_PUBLIC_PERIOD_COUNT,
   )
   const [isLoadingPublicData, setIsLoadingPublicData] = useState(false)
-  const [activeModule, setActiveModule] = useState('hypothesis')
   const publicDatasetOptions = getIbgePublicDatasetOptions()
   const selectedPublicApiUrl = getIbgeDatasetApiUrl(
     selectedPublicDatasetId,
@@ -361,7 +337,6 @@ export function HypothesisTestCalculator() {
   }
 
   const selectManual = () => {
-    setActiveModule('manual')
     setSelectedOption('manual')
     setSelectedExample(null)
     setPublicDataSummary(null)
@@ -374,7 +349,6 @@ export function HypothesisTestCalculator() {
 
   const selectIbge = () => {
     const baseExample = hypothesisExamples.find((example) => example.id === 'ibge-ipca')
-    setActiveModule('ibge')
     setSelectedOption('ibge-ipca')
     setSelectedExample(baseExample)
     setPublicDataSummary(null)
@@ -436,7 +410,6 @@ export function HypothesisTestCalculator() {
       successes: toInputValue(example.inputs?.successes),
     }
 
-    setActiveModule('exercises')
     setSelectedOption(example.id)
     setSelectedExample(example)
     setPublicDataSummary(null)
@@ -495,7 +468,6 @@ export function HypothesisTestCalculator() {
       sampleSize: toInputValue(summary.n),
     }
 
-    setActiveModule('ibge')
     setSelectedOption('ibge-ipca')
     setSelectedExample(example)
     setForm(nextForm)
@@ -731,7 +703,6 @@ export function HypothesisTestCalculator() {
   }
 
   const useManualSample = ({ sampleSize, sampleMean, sampleStandardDeviation }) => {
-    setActiveModule('manual')
     setSelectedOption('manual')
     setSelectedExample(null)
     setPublicDataSummary(null)
@@ -749,12 +720,6 @@ export function HypothesisTestCalculator() {
     }))
   }
 
-  const selectAnalysisModule = (moduleId) => {
-    setActiveModule(moduleId)
-    if (moduleId === 'ibge') selectIbge()
-    if (moduleId === 'manual') selectManual()
-  }
-
   return (
     <section className="inferential-minimal">
       <div className="page-section inferential-page">
@@ -766,27 +731,7 @@ export function HypothesisTestCalculator() {
           </div>
         </div>
 
-        <div className="analysis-shell">
-          <aside className="analysis-sidebar" aria-label="Análises">
-            <h2>Análises</h2>
-            <div className="analysis-menu" role="tablist" aria-label="Módulos de análise">
-              {analysisModules.map((module) => (
-                <button
-                  className={`analysis-menu-item ${activeModule === module.id ? 'active' : ''}`}
-                  key={module.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeModule === module.id}
-                  onClick={() => selectAnalysisModule(module.id)}
-                >
-                  <span>{module.title}</span>
-                  <small>{module.helper}</small>
-                </button>
-              ))}
-            </div>
-          </aside>
-
-          <div className="analysis-workspace">
+        <div className="analysis-content">
             <ExampleSelector
               selectedExampleId={selectedExample?.id}
               selectedOption={selectedOption}
@@ -817,7 +762,7 @@ export function HypothesisTestCalculator() {
                   <div>
                     <div className="numbered-title">
                       <span className="section-number">2</span>
-                      <h2>Configuração do Teste</h2>
+                      <h2>Dados do teste</h2>
                     </div>
                     <p className="section-helper">
                       {getHelperText({ form, selectedOption })}
@@ -861,35 +806,25 @@ export function HypothesisTestCalculator() {
                       ))}
                     </ul>
                   ) : null}
-                </div>
-              </section>
 
-              <section className="flow-section run-section">
-                <div className="flow-heading">
-                  <div className="numbered-title">
-                    <span className="section-number">3</span>
-                    <h2>Executar Análise</h2>
+                  <div className="form-actions">
+                    <button className="primary-button" type="submit">
+                      Calcular p-valor
+                    </button>
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      onClick={selectManual}
+                    >
+                      Limpar
+                    </button>
                   </div>
-                  <span className="soft-badge">P-valor</span>
-                </div>
-                <div className="run-actions">
-                  <button className="primary-button" type="submit">
-                    Calcular p-valor
-                  </button>
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    onClick={selectManual}
-                  >
-                    Limpar
-                  </button>
                 </div>
               </section>
             </form>
 
             <HypothesisResult result={result} />
             <P2Compliance />
-          </div>
         </div>
       </div>
     </section>
