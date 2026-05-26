@@ -6,6 +6,7 @@ import { ManualDataImport } from './ManualDataImport'
 import { P2Compliance } from './P2Compliance'
 import {
   DEFAULT_IBGE_DATASET_ID,
+  DEFAULT_PUBLIC_PERIOD_COUNT,
   calculateSampleSummary,
   getIbgeDatasetFallbackSummary,
   getIbgeDatasetSummaryWithFallback,
@@ -157,6 +158,9 @@ export function HypothesisTestCalculator() {
   const [selectedPublicDatasetId, setSelectedPublicDatasetId] = useState(
     DEFAULT_IBGE_DATASET_ID,
   )
+  const [publicPeriodCount, setPublicPeriodCount] = useState(
+    DEFAULT_PUBLIC_PERIOD_COUNT,
+  )
   const [isLoadingPublicData, setIsLoadingPublicData] = useState(false)
   const publicDatasetOptions = getIbgePublicDatasetOptions()
 
@@ -219,6 +223,15 @@ export function HypothesisTestCalculator() {
       parameter: 'μ',
       alternative: 'right',
     })
+    resetMessages()
+  }
+
+  const selectPublicPeriodCount = (periodCount) => {
+    setPublicPeriodCount(Number(periodCount))
+    setPublicDataSummary(null)
+    setPublicDataStatus('idle')
+    setSelectedPublicPeriods([])
+    setResult(null)
     resetMessages()
   }
 
@@ -293,7 +306,7 @@ export function HypothesisTestCalculator() {
       context: summary.context || 'variação média mensal',
       hypothesizedValue: toInputValue(summary.hypothesizedValue ?? 0.4),
       unit: summary.unit || '%',
-      alpha: '0,05',
+      alpha: toInputValue(summary.alpha ?? 0.05),
       sampleMean: toInputValue(Number(summary.sampleMean.toFixed(6))),
       sampleStandardDeviation: toInputValue(Number(summary.sampleStandardDeviation.toFixed(6))),
       sampleSize: toInputValue(summary.n),
@@ -316,13 +329,18 @@ export function HypothesisTestCalculator() {
   const loadPublicData = async () => {
     setIsLoadingPublicData(true)
     setPublicDataStatus('loading')
-    const summary = await getIbgeDatasetSummaryWithFallback(selectedPublicDatasetId)
+    const summary = await getIbgeDatasetSummaryWithFallback(
+      selectedPublicDatasetId,
+      publicPeriodCount,
+    )
     storeLoadedPublicData(summary)
     setIsLoadingPublicData(false)
   }
 
   const useFallbackData = () => {
-    storeLoadedPublicData(getIbgeDatasetFallbackSummary(selectedPublicDatasetId))
+    storeLoadedPublicData(
+      getIbgeDatasetFallbackSummary(selectedPublicDatasetId, publicPeriodCount),
+    )
   }
 
   const togglePublicPeriod = (period) => {
@@ -347,6 +365,16 @@ export function HypothesisTestCalculator() {
     }
 
     applyPublicDataSummary(selectedSummary)
+  }
+
+  const selectAllPublicPeriods = () => {
+    setSelectedPublicPeriods(publicDataSummary?.periods || [])
+    setResult(null)
+  }
+
+  const clearPublicPeriodSelection = () => {
+    setSelectedPublicPeriods([])
+    setResult(null)
   }
 
   const parseForm = (targetForm) => ({
@@ -523,6 +551,7 @@ export function HypothesisTestCalculator() {
     setSelectedExample(null)
     setPublicDataSummary(null)
     setPublicDataStatus(null)
+    setSelectedPublicPeriods([])
     setResult(null)
     setForm((current) => ({
       ...current,
@@ -556,12 +585,16 @@ export function HypothesisTestCalculator() {
           publicDatasetOptions={publicDatasetOptions}
           selectedPublicDatasetId={selectedPublicDatasetId}
           selectedPublicPeriods={selectedPublicPeriods}
+          publicPeriodCount={publicPeriodCount}
           onLoadPublicData={loadPublicData}
           onSelectExample={applyExample}
           onSelectManual={selectManual}
           onSelectIbge={selectIbge}
           onSelectPublicDataset={selectPublicDataset}
+          onSelectPublicPeriodCount={selectPublicPeriodCount}
           onTogglePublicPeriod={togglePublicPeriod}
+          onSelectAllPublicPeriods={selectAllPublicPeriods}
+          onClearPublicPeriodSelection={clearPublicPeriodSelection}
           onUseSelectedPublicData={useSelectedPublicData}
           onUseFallbackData={useFallbackData}
         />

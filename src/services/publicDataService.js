@@ -7,7 +7,8 @@ import {
 export const IBGE_IPCA_SIDRA_URL =
   'https://apisidra.ibge.gov.br/values/t/1737/n1/all/v/63/p/last%2012/d/v63%202'
 
-export const DEFAULT_IBGE_DATASET_ID = 'ibge-ipca'
+export const DEFAULT_IBGE_DATASET_ID = 'ibge-ipca-monthly'
+export const DEFAULT_PUBLIC_PERIOD_COUNT = 12
 
 function getIbgeDataset(datasetId = DEFAULT_IBGE_DATASET_ID) {
   return (
@@ -16,8 +17,13 @@ function getIbgeDataset(datasetId = DEFAULT_IBGE_DATASET_ID) {
   )
 }
 
-function buildSidraUrl(dataset) {
-  return `https://apisidra.ibge.gov.br/values/t/${dataset.table}/n1/all/v/${dataset.variableCode}/p/last%2012/d/v${dataset.variableCode}%202`
+export function buildSidraUrl(dataset, periodCount = DEFAULT_PUBLIC_PERIOD_COUNT) {
+  if (!dataset?.apiUrlTemplate) return ''
+
+  return dataset.apiUrlTemplate
+    .replace('{table}', dataset.sidraTable)
+    .replaceAll('{variable}', dataset.sidraVariable)
+    .replace('{periodCount}', periodCount)
 }
 
 function parsePeriod(rawPeriod) {
@@ -35,11 +41,19 @@ function parseValue(rawValue) {
   return Number(value.replace(',', '.'))
 }
 
-export async function fetchIbgeDatasetData(datasetId = DEFAULT_IBGE_DATASET_ID) {
+export async function fetchIbgeDatasetData(
+  datasetId = DEFAULT_IBGE_DATASET_ID,
+  periodCount = DEFAULT_PUBLIC_PERIOD_COUNT,
+) {
   const dataset = getIbgeDataset(datasetId)
+  const apiUrl = buildSidraUrl(dataset, periodCount)
+
+  if (!apiUrl || dataset.status !== 'available') {
+    throw new Error('Indicador sem consulta online configurada.')
+  }
 
   try {
-    const response = await fetch(buildSidraUrl(dataset))
+    const response = await fetch(apiUrl)
     if (!response.ok) {
       throw new Error(`IBGE retornou status ${response.status}.`)
     }
@@ -102,21 +116,41 @@ export function calculateSampleSummary(values) {
   }
 }
 
-function buildSummary(rows, dataset, dataStatus, statusMessage) {
+function buildSummary(
+  rows,
+  dataset,
+  dataStatus,
+  statusMessage,
+  periodCount = DEFAULT_PUBLIC_PERIOD_COUNT,
+) {
   const summary = calculateSampleSummary(rows.map((row) => row.value))
+  const apiUrl = buildSidraUrl(dataset, periodCount)
 
   return {
     id: dataset.id,
-    source: dataset.source,
-    dataset: dataset.dataset,
-    variable: dataset.variable,
+    label: dataset.label,
+    shortLabel: dataset.shortLabel,
+    description: dataset.description,
+    source: dataset.sourceName,
+    sourceName: dataset.sourceName,
+    sourceUrl: dataset.sourceUrl,
+    officialPageUrl: dataset.officialPageUrl,
+    dataset: `${dataset.label} - Tabela ${dataset.sidraTable}`,
+    sidraTable: dataset.sidraTable,
+    sidraVariable: dataset.sidraVariable,
+    variable: dataset.variableLabel,
+    variableLabel: dataset.variableLabel,
     unit: dataset.unit,
     question: dataset.question,
-    hypothesizedValue: dataset.hypothesizedValue,
+    hypothesizedValue: dataset.defaultHypothesizedValue,
     context: dataset.context,
-    alternative: dataset.alternative,
+    alternative: dataset.defaultAlternative,
+    alpha: dataset.defaultAlpha,
     nullHypothesisText: dataset.nullHypothesisText,
     alternativeHypothesisText: dataset.alternativeHypothesisText,
+    fallbackGeneratedAt: dataset.fallbackGeneratedAt,
+    apiUrl,
+    periodCount,
     periods: rows.map((row) => row.period),
     values: rows,
     dataStatus,
@@ -125,9 +159,12 @@ function buildSummary(rows, dataset, dataStatus, statusMessage) {
   }
 }
 
-export function getIbgeDatasetFallbackSummary(datasetId = DEFAULT_IBGE_DATASET_ID) {
+export function getIbgeDatasetFallbackSummary(
+  datasetId = DEFAULT_IBGE_DATASET_ID,
+  periodCount = DEFAULT_PUBLIC_PERIOD_COUNT,
+) {
   const dataset = getIbgeDataset(datasetId)
-  const rows = parseIbgeDatasetData({ value: dataset.fallback })
+  const rows = parseIbgeDatasetData({ value: dataset.fallbackValues })
   const hasEnoughData = rows.length >= 2
 
   return buildSummary(
@@ -137,6 +174,7 @@ export function getIbgeDatasetFallbackSummary(datasetId = DEFAULT_IBGE_DATASET_I
     hasEnoughData
       ? 'Dados públicos pré-carregados.'
       : 'Fallback local sem valores suficientes para calcular o teste t.',
+    periodCount,
   )
 }
 
@@ -146,19 +184,20 @@ export function getIbgeIpcaFallbackSummary() {
 
 export async function getIbgeDatasetSummaryWithFallback(
   datasetId = DEFAULT_IBGE_DATASET_ID,
+  periodCount = DEFAULT_PUBLIC_PERIOD_COUNT,
 ) {
   const dataset = getIbgeDataset(datasetId)
 
   try {
-    const rawData = await fetchIbgeDatasetData(dataset.id)
+    const rawData = await fetchIbgeDatasetData(dataset.id, periodCount)
     const rows = parseIbgeDatasetData(rawData)
     if (rows.length < 2) {
       throw new Error('IBGE retornou menos de 2 valores válidos.')
     }
 
-    return buildSummary(rows, dataset, 'online', 'IBGE/SIDRA online.')
+    return buildSummary(rows, dataset, 'online', 'IBGE/SIDRA online.', periodCount)
   } catch {
-    const fallbackSummary = getIbgeDatasetFallbackSummary(dataset.id)
+    const fallbackSummary = getIbgeDatasetFallbackSummary(dataset.id, periodCount)
     if (fallbackSummary.n < 2) return fallbackSummary
 
     return {
@@ -181,24 +220,32 @@ export function getIbgePublicDatasetOptions() {
   return ibgePublicDatasets.map(
     ({
       id,
-      shortName,
-      title,
-      source,
-      dataset,
-      table,
-      variable,
+      label,
+      shortLabel,
+      description,
+      sourceName,
+      sourceUrl,
+      sidraTable,
+      sidraVariable,
+      variableLabel,
       unit,
-      question,
+      officialPageUrl,
+      status,
+      badge,
     }) => ({
       id,
-      shortName,
-      title,
-      source,
-      dataset,
-      table,
-      variable,
+      label,
+      shortLabel,
+      description,
+      sourceName,
+      sourceUrl,
+      sidraTable,
+      sidraVariable,
+      variableLabel,
       unit,
-      question,
+      officialPageUrl,
+      status,
+      badge,
     }),
   )
 }

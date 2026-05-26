@@ -130,12 +130,82 @@ export function HypothesisResult({ result }) {
             <p>{result.typeIIExplanation}</p>
           </ResultDetail>
 
-          <ResultDetail title="Fonte">
+          <ResultDetail title="Fonte dos dados">
             <p>{result.sourceLabel || 'Preenchimento manual'}</p>
             {result.publicDataSummary ? (
-              <p>
-                {result.publicDataSummary.source} — {result.publicDataSummary.dataset}
-              </p>
+              <div className="source-detail-stack">
+                <dl className="data-list">
+                  <div className="data-row">
+                    <dt>Origem</dt>
+                    <dd>
+                      <strong>{result.publicDataSummary.sourceName}</strong>
+                    </dd>
+                  </div>
+                  <div className="data-row">
+                    <dt>Tabela SIDRA</dt>
+                    <dd>
+                      <strong>{result.publicDataSummary.sidraTable}</strong>
+                    </dd>
+                  </div>
+                  <div className="data-row">
+                    <dt>Variável</dt>
+                    <dd>
+                      <strong>
+                        {result.publicDataSummary.variableLabel} (
+                        {result.publicDataSummary.sidraVariable})
+                      </strong>
+                    </dd>
+                  </div>
+                  <div className="data-row">
+                    <dt>Status</dt>
+                    <dd>
+                      <strong>
+                        {result.publicDataSummary.dataStatus === 'online'
+                          ? 'Dados carregados online'
+                          : 'Usando fallback local'}
+                      </strong>
+                    </dd>
+                  </div>
+                  <div className="data-row">
+                    <dt>Períodos selecionados</dt>
+                    <dd>
+                      <strong>{result.publicDataSummary.periods.join(', ')}</strong>
+                    </dd>
+                  </div>
+                  {result.publicDataSummary.dataStatus === 'fallback' ? (
+                    <div className="data-row">
+                      <dt>Atualização do fallback</dt>
+                      <dd>
+                        <strong>{result.publicDataSummary.fallbackGeneratedAt}</strong>
+                      </dd>
+                    </div>
+                  ) : null}
+                </dl>
+                <div className="source-actions">
+                  <a
+                    className="secondary-button source-link-button"
+                    href={
+                      result.publicDataSummary.sourceUrl ||
+                      result.publicDataSummary.officialPageUrl
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Ver fonte oficial
+                  </a>
+                  <a
+                    className="secondary-button source-link-button"
+                    href={result.publicDataSummary.apiUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Ver URL da API
+                  </a>
+                </div>
+                <p className="muted source-url-text">
+                  URL consultada: {result.publicDataSummary.apiUrl}
+                </p>
+              </div>
             ) : null}
             {result.exampleTitle ? <p>{result.exampleTitle}</p> : null}
           </ResultDetail>
