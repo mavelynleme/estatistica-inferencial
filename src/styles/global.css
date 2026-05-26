@@ -474,7 +474,7 @@ button.primary,
 
 .choice-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 16px;
 }
@@ -513,6 +513,10 @@ button.primary,
 
 .compact-helper {
   margin-top: 0;
+}
+
+.allocated-example-panel {
+  margin-top: 16px;
 }
 
 .helper-card {

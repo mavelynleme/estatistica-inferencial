@@ -420,6 +420,15 @@ export function HypothesisTestCalculator() {
     setResult(buildResult(nextForm, example))
   }
 
+  const selectAllocated = () => {
+    const defaultExample =
+      hypothesisExamples.find(
+        (example) => example.id === 'tarefa-8-teste-ab-conversao',
+      ) || hypothesisExamples[0]
+
+    if (defaultExample) applyExample(defaultExample)
+  }
+
   const buildPublicDataExampleFromSummary = (summary) => {
     const baseExample = hypothesisExamples.find((example) => example.id === 'ibge-ipca')
 
@@ -747,6 +756,7 @@ export function HypothesisTestCalculator() {
               onSelectExample={applyExample}
               onSelectManual={selectManual}
               onSelectIbge={selectIbge}
+              onSelectAllocated={selectAllocated}
               onSelectPublicDataset={selectPublicDataset}
               onSelectPublicPeriodCount={selectPublicPeriodCount}
               onTogglePublicPeriod={togglePublicPeriod}

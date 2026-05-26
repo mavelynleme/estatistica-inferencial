@@ -1,36 +1,30 @@
 import { hypothesisExamples } from '../../data/hypothesisExamples'
 import { formatNumber } from '../../utils/hypothesisTests'
 
+const allocatedExampleIds = [
+  'tarefa-8-teste-ab-conversao',
+  'tarefa-8-microsservico',
+  'aula-9-plano-dieta',
+]
+
 const choices = [
   {
-    id: 'tarefa-8-teste-ab-conversao',
-    title: 'Tarefa 8',
-    subtitle: 'Teste A/B',
-    helper: 'P-valor informado para testar aumento na taxa de conversão.',
-  },
-  {
-    id: 'tarefa-8-microsservico',
-    title: 'Tarefa 8',
-    subtitle: 'Microsserviço',
-    helper: 'P-valor informado para testar redução no tempo médio de resposta.',
-  },
-  {
-    id: 'aula-9-plano-dieta',
-    title: 'Aula 9',
-    subtitle: 'Plano de Dieta',
-    helper: 'P-valor informado para avaliar a afirmação sobre perda média.',
+    id: 'manual',
+    title: 'Manual',
+    subtitle: 'Inserir amostra',
+    helper: 'Cole sua própria amostra para calcular n, média, desvio padrão e usar no teste t.',
   },
   {
     id: 'ibge-ipca',
     title: 'IBGE',
     subtitle: 'Dados públicos',
-    helper: 'Carregue dados públicos ou use o fallback local para preencher o teste t.',
+    helper: 'Carregue dados públicos do IBGE/SIDRA, selecione os períodos e use a amostra no teste t.',
   },
   {
-    id: 'manual',
-    title: 'Manual',
-    subtitle: 'Inserir dados',
-    helper: 'Cole uma amostra própria ou preencha os campos do teste manualmente.',
+    id: 'allocated',
+    title: 'Dados alocados',
+    subtitle: 'Exercícios prontos',
+    helper: 'Use exercícios já cadastrados, como Tarefa 8 e Aula 9, com p-valor informado.',
   },
 ]
 
@@ -65,6 +59,7 @@ export function ExampleSelector({
   onSelectExample,
   onSelectManual,
   onSelectIbge,
+  onSelectAllocated,
   onSelectPublicDataset,
   onSelectPublicPeriodCount,
   onTogglePublicPeriod,
@@ -76,8 +71,15 @@ export function ExampleSelector({
   const selectedExample = hypothesisExamples.find(
     (example) => example.id === selectedExampleId,
   )
+  const allocatedExamples = hypothesisExamples.filter((example) =>
+    allocatedExampleIds.includes(example.id),
+  )
+  const isAllocatedSelected =
+    selectedOption === 'allocated' || allocatedExampleIds.includes(selectedOption)
   const selectedChoice =
-    choices.find((choice) => choice.id === selectedOption) || choices[4]
+    choices.find((choice) =>
+      choice.id === (isAllocatedSelected ? 'allocated' : selectedOption),
+    ) || choices[0]
   const isIbgeSelected = selectedOption === 'ibge-ipca'
   const statusKey = isLoadingPublicData ? 'loading' : publicDataStatus || 'idle'
   const canUsePublicSummary = publicDataSummary?.n >= 2
@@ -100,20 +102,33 @@ export function ExampleSelector({
       return
     }
 
-    const example = hypothesisExamples.find((item) => item.id === id)
+    if (id === 'allocated') onSelectAllocated()
+  }
+
+  const selectAllocatedExample = (exampleId) => {
+    const example = allocatedExamples.find((item) => item.id === exampleId)
     if (example) onSelectExample(example)
   }
+
+  const allocatedBadge = selectedExample?.title?.startsWith('Aula 9')
+    ? 'Aula 9'
+    : selectedExample
+      ? 'Tarefa 8'
+      : null
 
   return (
     <section className="flow-section">
       <div className="flow-heading">
-        <div className="numbered-title">
-          <span className="section-number">1</span>
-          <h2>Escolha o teste</h2>
+        <div>
+          <div className="numbered-title">
+            <span className="section-number">1</span>
+            <h2>Entrada de Dados</h2>
+          </div>
+          <p className="section-helper">Escolha como deseja iniciar</p>
         </div>
         <span className="soft-badge">
-          {selectedExample?.mode === 'given-p-value'
-            ? 'P-valor informado'
+          {isAllocatedSelected
+            ? 'Dados alocados'
             : isIbgeSelected
               ? 'Dados públicos'
               : 'Manual'}
@@ -123,7 +138,11 @@ export function ExampleSelector({
       <div className="choice-grid" role="list">
         {choices.map((choice) => (
           <button
-            className={`choice-card ${selectedOption === choice.id ? 'active' : ''}`}
+            className={`choice-card ${
+              (isAllocatedSelected ? 'allocated' : selectedOption) === choice.id
+                ? 'active'
+                : ''
+            }`}
             key={choice.id}
             type="button"
             onClick={() => selectChoice(choice.id)}
@@ -138,17 +157,42 @@ export function ExampleSelector({
         <div className="example-meta">
           <span className="badge">{selectedChoice.title}</span>
           <span className="soft-badge">{selectedChoice.subtitle}</span>
-          {selectedExample?.mode === 'given-p-value' ? (
-            <span className="soft-badge">P-valor informado</span>
-          ) : null}
           {isIbgeSelected ? (
             <>
               <span className="soft-badge">Dados públicos</span>
               <span className="soft-badge">{publicStatusLabels[statusKey]}</span>
             </>
           ) : null}
+          {isAllocatedSelected ? (
+            <>
+              <span className="soft-badge">Dados alocados</span>
+              <span className="soft-badge">P-valor informado</span>
+              {allocatedBadge ? (
+                <span className="soft-badge">{allocatedBadge}</span>
+              ) : null}
+            </>
+          ) : null}
         </div>
         <p>{selectedChoice.helper}</p>
+
+        {isAllocatedSelected ? (
+          <div className="allocated-example-panel">
+            <div className="field">
+              <label htmlFor="allocatedExample">Escolha um exercício</label>
+              <select
+                id="allocatedExample"
+                value={selectedExample?.id || ''}
+                onChange={(event) => selectAllocatedExample(event.target.value)}
+              >
+                {allocatedExamples.map((example) => (
+                  <option value={example.id} key={example.id}>
+                    {example.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        ) : null}
 
         {isIbgeSelected ? (
           <div className="public-data-loader">
@@ -280,7 +324,7 @@ export function ExampleSelector({
                 disabled={isLoadingPublicData}
                 onClick={onUseFallbackData}
               >
-                Usar fallback local
+                Usar dados pré-carregados
               </button>
             </div>
             <p className="network-proof-helper">
