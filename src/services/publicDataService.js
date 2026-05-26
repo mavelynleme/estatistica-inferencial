@@ -1,11 +1,24 @@
 import {
-  ibgeIpcaFallback,
   ibgeIpcaPublicExample,
+  ibgePublicDatasets,
   publicDataSources,
 } from '../data/publicDatasets'
 
 export const IBGE_IPCA_SIDRA_URL =
   'https://apisidra.ibge.gov.br/values/t/1737/n1/all/v/63/p/last%2012/d/v63%202'
+
+export const DEFAULT_IBGE_DATASET_ID = 'ibge-ipca'
+
+function getIbgeDataset(datasetId = DEFAULT_IBGE_DATASET_ID) {
+  return (
+    ibgePublicDatasets.find((dataset) => dataset.id === datasetId) ||
+    ibgePublicDatasets[0]
+  )
+}
+
+function buildSidraUrl(dataset) {
+  return `https://apisidra.ibge.gov.br/values/t/${dataset.table}/n1/all/v/${dataset.variableCode}/p/last%2012/d/v${dataset.variableCode}%202`
+}
 
 function parsePeriod(rawPeriod) {
   const value = String(rawPeriod ?? '').trim()
@@ -22,9 +35,11 @@ function parseValue(rawValue) {
   return Number(value.replace(',', '.'))
 }
 
-export async function fetchIbgeIpcaData() {
+export async function fetchIbgeDatasetData(datasetId = DEFAULT_IBGE_DATASET_ID) {
+  const dataset = getIbgeDataset(datasetId)
+
   try {
-    const response = await fetch(IBGE_IPCA_SIDRA_URL)
+    const response = await fetch(buildSidraUrl(dataset))
     if (!response.ok) {
       throw new Error(`IBGE retornou status ${response.status}.`)
     }
@@ -32,11 +47,16 @@ export async function fetchIbgeIpcaData() {
   } catch (error) {
     throw new Error(
       error?.message || 'Não foi possível carregar os dados públicos do IBGE.',
+      { cause: error },
     )
   }
 }
 
-export function parseIbgeIpcaData(rawData) {
+export async function fetchIbgeIpcaData() {
+  return fetchIbgeDatasetData(DEFAULT_IBGE_DATASET_ID)
+}
+
+export function parseIbgeDatasetData(rawData) {
   const rows = Array.isArray(rawData) ? rawData : rawData?.value
   if (!Array.isArray(rows)) return []
 
@@ -47,6 +67,10 @@ export function parseIbgeIpcaData(rawData) {
       return { period, value }
     })
     .filter((item) => item.period && Number.isFinite(item.value))
+}
+
+export function parseIbgeIpcaData(rawData) {
+  return parseIbgeDatasetData(rawData)
 }
 
 export function calculateSampleSummary(values) {
@@ -78,14 +102,21 @@ export function calculateSampleSummary(values) {
   }
 }
 
-function buildSummary(rows, dataStatus, statusMessage) {
+function buildSummary(rows, dataset, dataStatus, statusMessage) {
   const summary = calculateSampleSummary(rows.map((row) => row.value))
 
   return {
-    source: ibgeIpcaFallback.source,
-    dataset: ibgeIpcaFallback.dataset,
-    variable: ibgeIpcaFallback.variable,
-    unit: ibgeIpcaFallback.unit,
+    id: dataset.id,
+    source: dataset.source,
+    dataset: dataset.dataset,
+    variable: dataset.variable,
+    unit: dataset.unit,
+    question: dataset.question,
+    hypothesizedValue: dataset.hypothesizedValue,
+    context: dataset.context,
+    alternative: dataset.alternative,
+    nullHypothesisText: dataset.nullHypothesisText,
+    alternativeHypothesisText: dataset.alternativeHypothesisText,
     periods: rows.map((row) => row.period),
     values: rows,
     dataStatus,
@@ -94,43 +125,82 @@ function buildSummary(rows, dataStatus, statusMessage) {
   }
 }
 
-export function getIbgeIpcaFallbackSummary() {
-  const rows = parseIbgeIpcaData({ value: ibgeIpcaFallback.values })
+export function getIbgeDatasetFallbackSummary(datasetId = DEFAULT_IBGE_DATASET_ID) {
+  const dataset = getIbgeDataset(datasetId)
+  const rows = parseIbgeDatasetData({ value: dataset.fallback })
   const hasEnoughData = rows.length >= 2
 
   return buildSummary(
     rows,
+    dataset,
     hasEnoughData ? 'fallback' : 'error',
     hasEnoughData
-      ? 'Usando dados públicos pré-carregados.'
+      ? 'Dados públicos pré-carregados.'
       : 'Fallback local sem valores suficientes para calcular o teste t.',
   )
 }
 
-export async function getIbgeIpcaExampleWithFallback() {
+export function getIbgeIpcaFallbackSummary() {
+  return getIbgeDatasetFallbackSummary(DEFAULT_IBGE_DATASET_ID)
+}
+
+export async function getIbgeDatasetSummaryWithFallback(
+  datasetId = DEFAULT_IBGE_DATASET_ID,
+) {
+  const dataset = getIbgeDataset(datasetId)
+
   try {
-    const rawData = await fetchIbgeIpcaData()
-    const rows = parseIbgeIpcaData(rawData)
+    const rawData = await fetchIbgeDatasetData(dataset.id)
+    const rows = parseIbgeDatasetData(rawData)
     if (rows.length < 2) {
       throw new Error('IBGE retornou menos de 2 valores válidos.')
     }
 
-    return buildSummary(rows, 'online', 'Dados carregados do IBGE com sucesso.')
+    return buildSummary(rows, dataset, 'online', 'IBGE/SIDRA online.')
   } catch {
-    const fallbackSummary = getIbgeIpcaFallbackSummary()
+    const fallbackSummary = getIbgeDatasetFallbackSummary(dataset.id)
     if (fallbackSummary.n < 2) return fallbackSummary
 
     return {
       ...fallbackSummary,
       dataStatus: 'fallback',
-      statusMessage:
-        'Não foi possível acessar o IBGE. Usando dados públicos pré-carregados.',
+      statusMessage: 'Dados públicos pré-carregados.',
     }
   }
 }
 
+export async function getIbgeIpcaExampleWithFallback() {
+  return getIbgeDatasetSummaryWithFallback(DEFAULT_IBGE_DATASET_ID)
+}
+
 export function getIbgeIpcaExample() {
   return ibgeIpcaPublicExample.example
+}
+
+export function getIbgePublicDatasetOptions() {
+  return ibgePublicDatasets.map(
+    ({
+      id,
+      shortName,
+      title,
+      source,
+      dataset,
+      table,
+      variable,
+      unit,
+      question,
+    }) => ({
+      id,
+      shortName,
+      title,
+      source,
+      dataset,
+      table,
+      variable,
+      unit,
+      question,
+    }),
+  )
 }
 
 export function getAvailablePublicDataSources() {

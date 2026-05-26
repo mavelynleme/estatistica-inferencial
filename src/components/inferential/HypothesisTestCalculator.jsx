@@ -5,8 +5,11 @@ import { HypothesisResult } from './HypothesisResult'
 import { ManualDataImport } from './ManualDataImport'
 import { P2Compliance } from './P2Compliance'
 import {
-  getIbgeIpcaExampleWithFallback,
-  getIbgeIpcaFallbackSummary,
+  DEFAULT_IBGE_DATASET_ID,
+  calculateSampleSummary,
+  getIbgeDatasetFallbackSummary,
+  getIbgeDatasetSummaryWithFallback,
+  getIbgePublicDatasetOptions,
 } from '../../services/publicDataService'
 import {
   buildDecision,
@@ -97,10 +100,11 @@ function buildRows(form, result) {
   }
 
   if (result.publicDataSummary) {
+    const unit = result.publicDataSummary.unit || ''
     rows.push(['Fonte', result.publicDataSummary.source])
     rows.push(['Períodos', result.publicDataSummary.periods.join(', ')])
-    rows.push(['Mínimo', `${formatNumber(result.publicDataSummary.min, 6)}%`])
-    rows.push(['Máximo', `${formatNumber(result.publicDataSummary.max, 6)}%`])
+    rows.push(['Mínimo', `${formatNumber(result.publicDataSummary.min, 6)}${unit}`])
+    rows.push(['Máximo', `${formatNumber(result.publicDataSummary.max, 6)}${unit}`])
   }
 
   return rows.map(([label, value]) => ({ label, value }))
@@ -149,7 +153,12 @@ export function HypothesisTestCalculator() {
   const [selectedOption, setSelectedOption] = useState('manual')
   const [publicDataSummary, setPublicDataSummary] = useState(null)
   const [publicDataStatus, setPublicDataStatus] = useState(null)
+  const [selectedPublicPeriods, setSelectedPublicPeriods] = useState([])
+  const [selectedPublicDatasetId, setSelectedPublicDatasetId] = useState(
+    DEFAULT_IBGE_DATASET_ID,
+  )
   const [isLoadingPublicData, setIsLoadingPublicData] = useState(false)
+  const publicDatasetOptions = getIbgePublicDatasetOptions()
 
   const updateField = (field, value) => {
     setForm((current) => {
@@ -172,6 +181,7 @@ export function HypothesisTestCalculator() {
     setSelectedExample(null)
     setPublicDataSummary(null)
     setPublicDataStatus(null)
+    setSelectedPublicPeriods([])
     setResult(null)
     setForm(initialForm)
     resetMessages()
@@ -183,6 +193,25 @@ export function HypothesisTestCalculator() {
     setSelectedExample(baseExample)
     setPublicDataSummary(null)
     setPublicDataStatus('idle')
+    setSelectedPublicPeriods([])
+    setResult(null)
+    setForm({
+      ...initialForm,
+      testType: 'mean-t',
+      parameter: 'μ',
+      alternative: 'right',
+    })
+    resetMessages()
+  }
+
+  const selectPublicDataset = (datasetId) => {
+    const baseExample = hypothesisExamples.find((example) => example.id === 'ibge-ipca')
+    setSelectedPublicDatasetId(datasetId)
+    setSelectedOption('ibge-ipca')
+    setSelectedExample(baseExample)
+    setPublicDataSummary(null)
+    setPublicDataStatus('idle')
+    setSelectedPublicPeriods([])
     setResult(null)
     setForm({
       ...initialForm,
@@ -216,6 +245,7 @@ export function HypothesisTestCalculator() {
     setSelectedExample(example)
     setPublicDataSummary(null)
     setPublicDataStatus(null)
+    setSelectedPublicPeriods([])
     setForm(nextForm)
     resetMessages()
     setResult(buildResult(nextForm, example))
@@ -226,6 +256,15 @@ export function HypothesisTestCalculator() {
 
     return {
       ...baseExample,
+      id: summary.id || baseExample.id,
+      title: `Dados públicos reais - IBGE ${summary.dataset}`,
+      sourceLabel: `${summary.source} - ${summary.dataset}`,
+      context: summary.context || baseExample.context,
+      hypothesizedValue:
+        summary.hypothesizedValue ?? baseExample.hypothesizedValue,
+      alternative: summary.alternative || baseExample.alternative,
+      typeIExplanation: `Erro Tipo I neste contexto seria concluir que ${summary.context} está acima de ${formatNumber(summary.hypothesizedValue, 2)}${summary.unit}, rejeitando H₀, quando na verdade ela não está acima desse valor.`,
+      typeIIExplanation: `Erro Tipo II neste contexto seria não rejeitar H₀ quando, na verdade, ${summary.context} está acima de ${formatNumber(summary.hypothesizedValue, 2)}${summary.unit}.`,
       inputs: {
         sampleSize: summary.n,
         sampleMean: summary.sampleMean,
@@ -236,7 +275,6 @@ export function HypothesisTestCalculator() {
   }
 
   const applyPublicDataSummary = (summary) => {
-    setPublicDataSummary(summary)
     setPublicDataStatus(summary.dataStatus)
     setResult(null)
 
@@ -250,11 +288,11 @@ export function HypothesisTestCalculator() {
       ...initialForm,
       mode: 'calculated',
       testType: 'mean-t',
-      alternative: 'right',
+      alternative: summary.alternative || 'right',
       parameter: 'μ',
-      context: 'variação média mensal do IPCA',
-      hypothesizedValue: '0,40',
-      unit: '%',
+      context: summary.context || 'variação média mensal',
+      hypothesizedValue: toInputValue(summary.hypothesizedValue ?? 0.4),
+      unit: summary.unit || '%',
       alpha: '0,05',
       sampleMean: toInputValue(Number(summary.sampleMean.toFixed(6))),
       sampleStandardDeviation: toInputValue(Number(summary.sampleStandardDeviation.toFixed(6))),
@@ -267,16 +305,48 @@ export function HypothesisTestCalculator() {
     resetMessages()
   }
 
+  const storeLoadedPublicData = (summary) => {
+    setPublicDataSummary(summary)
+    setPublicDataStatus(summary.dataStatus)
+    setSelectedPublicPeriods(summary.periods)
+    setResult(null)
+    resetMessages()
+  }
+
   const loadPublicData = async () => {
     setIsLoadingPublicData(true)
     setPublicDataStatus('loading')
-    const summary = await getIbgeIpcaExampleWithFallback()
-    applyPublicDataSummary(summary)
+    const summary = await getIbgeDatasetSummaryWithFallback(selectedPublicDatasetId)
+    storeLoadedPublicData(summary)
     setIsLoadingPublicData(false)
   }
 
   const useFallbackData = () => {
-    applyPublicDataSummary(getIbgeIpcaFallbackSummary())
+    storeLoadedPublicData(getIbgeDatasetFallbackSummary(selectedPublicDatasetId))
+  }
+
+  const togglePublicPeriod = (period) => {
+    setSelectedPublicPeriods((current) =>
+      current.includes(period)
+        ? current.filter((item) => item !== period)
+        : [...current, period],
+    )
+    setResult(null)
+  }
+
+  const useSelectedPublicData = () => {
+    const selectedRows =
+      publicDataSummary?.values.filter((row) =>
+        selectedPublicPeriods.includes(row.period),
+      ) || []
+    const selectedSummary = {
+      ...publicDataSummary,
+      periods: selectedRows.map((row) => row.period),
+      values: selectedRows,
+      ...calculateSampleSummary(selectedRows.map((row) => row.value)),
+    }
+
+    applyPublicDataSummary(selectedSummary)
   }
 
   const parseForm = (targetForm) => ({
@@ -430,9 +500,11 @@ export function HypothesisTestCalculator() {
     }
 
     if (example?.dynamicConclusion === 'ibge-ipca') {
+      const context = targetForm.context || 'série pública do IBGE'
+      const reference = `${formatNumber(parsed.hypothesizedValue, 2)}${targetForm.unit || ''}`
       resultObject.interpretation = decision.rejectNull
-        ? 'Há evidência estatística suficiente para afirmar que a variação média mensal do IPCA está acima de 0,40%.'
-        : 'Não há evidência estatística suficiente para afirmar que a variação média mensal do IPCA está acima de 0,40%.'
+        ? `Há evidência estatística suficiente para afirmar que ${context} está acima de ${reference}.`
+        : `Não há evidência estatística suficiente para afirmar que ${context} está acima de ${reference}.`
     }
 
     resultObject.dataRows = buildRows(targetForm, resultObject)
@@ -481,10 +553,16 @@ export function HypothesisTestCalculator() {
           publicDataStatus={publicDataStatus}
           publicDataSummary={publicDataSummary}
           isLoadingPublicData={isLoadingPublicData}
+          publicDatasetOptions={publicDatasetOptions}
+          selectedPublicDatasetId={selectedPublicDatasetId}
+          selectedPublicPeriods={selectedPublicPeriods}
           onLoadPublicData={loadPublicData}
           onSelectExample={applyExample}
           onSelectManual={selectManual}
           onSelectIbge={selectIbge}
+          onSelectPublicDataset={selectPublicDataset}
+          onTogglePublicPeriod={togglePublicPeriod}
+          onUseSelectedPublicData={useSelectedPublicData}
           onUseFallbackData={useFallbackData}
         />
 
@@ -661,10 +739,10 @@ export function HypothesisTestCalculator() {
             {selectedOption === 'ibge-ipca' && publicDataSummary?.n >= 2 ? (
               <div className="question-card">
                 <span className="soft-badge">Pergunta</span>
-                <p>Há evidência de que a variação média mensal do IPCA está acima de 0,40%?</p>
+                <p>{publicDataSummary.question}</p>
                 <div className="hypotheses">
-                  <span>H₀: μ ≤ 0,40%</span>
-                  <span>Hₐ: μ &gt; 0,40%</span>
+                  <span>{publicDataSummary.nullHypothesisText}</span>
+                  <span>{publicDataSummary.alternativeHypothesisText}</span>
                 </div>
               </div>
             ) : null}

@@ -661,6 +661,61 @@ select option {
   padding-top: 16px;
 }
 
+.public-period-panel {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.55);
+  padding: 14px;
+}
+
+.public-period-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.public-period-heading h4 {
+  margin: 0;
+  font-size: 0.98rem;
+}
+
+.public-period-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.period-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.62);
+  color: var(--text-main);
+  padding: 8px 10px;
+}
+
+.period-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}
+
+.period-row span,
+.period-row strong {
+  font-size: 0.9rem;
+}
+
+.use-selected-button {
+  width: fit-content;
+}
+
 .public-data-loader h3,
 .manual-inline-card h3 {
   margin: 0;
@@ -1009,6 +1064,10 @@ select option {
     grid-template-columns: 1fr;
   }
 
+  .public-period-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .header-inner {
     align-items: flex-start;
     flex-direction: column;
@@ -1054,6 +1113,14 @@ select option {
   .mode-tabs,
   .public-data-actions {
     display: grid;
+  }
+
+  .public-period-list {
+    grid-template-columns: 1fr;
+  }
+
+  .use-selected-button {
+    width: 100%;
   }
 
   .flow-section,

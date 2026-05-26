@@ -23,7 +23,7 @@ const choices = [
   {
     id: 'ibge-ipca',
     title: 'IBGE',
-    subtitle: 'IPCA',
+    subtitle: 'Dados públicos',
     helper: 'Carregue dados públicos ou use o fallback local para preencher o teste t.',
   },
   {
@@ -37,8 +37,8 @@ const choices = [
 const publicStatusLabels = {
   idle: 'Aguardando carregamento',
   loading: 'Aguardando carregamento',
-  online: 'Dados carregados do IBGE',
-  fallback: 'Usando fallback local',
+  online: 'IBGE/SIDRA online',
+  fallback: 'Dados públicos pré-carregados',
   error: 'Erro ao carregar',
 }
 
@@ -48,10 +48,16 @@ export function ExampleSelector({
   publicDataStatus,
   publicDataSummary,
   isLoadingPublicData,
+  publicDatasetOptions,
+  selectedPublicDatasetId,
+  selectedPublicPeriods,
   onLoadPublicData,
   onSelectExample,
   onSelectManual,
   onSelectIbge,
+  onSelectPublicDataset,
+  onTogglePublicPeriod,
+  onUseSelectedPublicData,
   onUseFallbackData,
 }) {
   const selectedExample = hypothesisExamples.find(
@@ -62,6 +68,10 @@ export function ExampleSelector({
   const isIbgeSelected = selectedOption === 'ibge-ipca'
   const statusKey = isLoadingPublicData ? 'loading' : publicDataStatus || 'idle'
   const canUsePublicSummary = publicDataSummary?.n >= 2
+  const selectedPeriodCount = selectedPublicPeriods.length
+  const selectedPublicDataset = publicDatasetOptions.find(
+    (dataset) => dataset.id === selectedPublicDatasetId,
+  )
 
   const selectChoice = (id) => {
     if (id === 'manual') {
@@ -129,23 +139,38 @@ export function ExampleSelector({
             <div>
               <h3>Dados públicos do IBGE</h3>
               <p>
-                Carregue a variação mensal do IPCA para preencher automaticamente
-                o teste t.
+                Escolha uma série pública do SIDRA e carregue os últimos 12
+                períodos para preencher automaticamente o teste t.
               </p>
+            </div>
+
+            <div className="field public-dataset-field">
+              <label htmlFor="publicDataset">Série IBGE</label>
+              <select
+                id="publicDataset"
+                value={selectedPublicDatasetId}
+                onChange={(event) => onSelectPublicDataset(event.target.value)}
+              >
+                {publicDatasetOptions.map((dataset) => (
+                  <option value={dataset.id} key={dataset.id}>
+                    {dataset.shortName} - {dataset.title}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <dl className="compact-summary public-source-summary">
               <div>
                 <dt>Fonte</dt>
-                <dd>IBGE/SIDRA</dd>
+                <dd>{selectedPublicDataset?.source || 'IBGE/SIDRA'}</dd>
               </div>
               <div>
                 <dt>Tabela</dt>
-                <dd>1737 — IPCA</dd>
+                <dd>{selectedPublicDataset?.table}</dd>
               </div>
               <div>
                 <dt>Variável</dt>
-                <dd>Variação mensal do IPCA</dd>
+                <dd>{selectedPublicDataset?.variable}</dd>
               </div>
             </dl>
 
@@ -185,24 +210,66 @@ export function ExampleSelector({
             )}
 
             {canUsePublicSummary ? (
-              <dl className="compact-summary">
-                <div>
-                  <dt>Períodos</dt>
-                  <dd>{publicDataSummary.periods.join(', ')}</dd>
+              <>
+                <div className="public-period-panel">
+                  <div className="public-period-heading">
+                    <h4>Períodos disponíveis</h4>
+                    <span className="soft-badge">
+                      {selectedPeriodCount} selecionados
+                    </span>
+                  </div>
+                  <div className="public-period-list">
+                    {publicDataSummary.values.map((row) => (
+                      <label className="period-row" key={row.period}>
+                        <input
+                          checked={selectedPublicPeriods.includes(row.period)}
+                          type="checkbox"
+                          onChange={() => onTogglePublicPeriod(row.period)}
+                        />
+                        <span>{row.period}</span>
+                        <strong>
+                          {formatNumber(row.value, 6)}
+                          {publicDataSummary.unit}
+                        </strong>
+                      </label>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <dt>n</dt>
-                  <dd>{publicDataSummary.n}</dd>
-                </div>
-                <div>
-                  <dt>Média</dt>
-                  <dd>{formatNumber(publicDataSummary.sampleMean, 6)}%</dd>
-                </div>
-                <div>
-                  <dt>Desvio padrão</dt>
-                  <dd>{formatNumber(publicDataSummary.sampleStandardDeviation, 6)}%</dd>
-                </div>
-              </dl>
+
+                <dl className="compact-summary">
+                  <div>
+                    <dt>Períodos</dt>
+                    <dd>{publicDataSummary.periods.join(', ')}</dd>
+                  </div>
+                  <div>
+                    <dt>n carregado</dt>
+                    <dd>{publicDataSummary.n}</dd>
+                  </div>
+                  <div>
+                    <dt>Média carregada</dt>
+                    <dd>
+                      {formatNumber(publicDataSummary.sampleMean, 6)}
+                      {publicDataSummary.unit}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Desvio padrão carregado</dt>
+                    <dd>
+                      {formatNumber(publicDataSummary.sampleStandardDeviation, 6)}
+                      {publicDataSummary.unit}
+                    </dd>
+                  </div>
+                </dl>
+
+                <button
+                  className="primary-button use-selected-button"
+                  type="button"
+                  disabled={selectedPeriodCount < 2}
+                  onClick={onUseSelectedPublicData}
+                >
+                  Usar selecionados no teste T
+                </button>
+              </>
             ) : null}
           </div>
         ) : null}
