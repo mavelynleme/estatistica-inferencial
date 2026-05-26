@@ -12,7 +12,7 @@ const choices = [
     id: 'manual',
     title: 'Manual',
     subtitle: 'Inserir amostra',
-    helper: 'Cole sua própria amostra para calcular n, média, desvio padrão e usar no teste t.',
+    helper: 'Insira sua amostra para calcular o resumo estatístico.',
   },
   {
     id: 'ibge-ipca',
@@ -126,13 +126,6 @@ export function ExampleSelector({
           </div>
           <p className="section-helper">Escolha como deseja iniciar</p>
         </div>
-        <span className="soft-badge">
-          {isAllocatedSelected
-            ? 'Dados alocados'
-            : isIbgeSelected
-              ? 'Dados públicos'
-              : 'Manual'}
-        </span>
       </div>
 
       <div className="choice-grid" role="list">
@@ -155,8 +148,6 @@ export function ExampleSelector({
 
       <div className="helper-card compact-helper">
         <div className="example-meta">
-          <span className="badge">{selectedChoice.title}</span>
-          <span className="soft-badge">{selectedChoice.subtitle}</span>
           {isIbgeSelected ? (
             <>
               <span className="soft-badge">Dados públicos</span>

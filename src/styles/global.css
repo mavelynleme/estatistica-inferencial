@@ -601,8 +601,9 @@ select option {
 }
 
 .form-actions {
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
+  margin-top: 1.5rem;
 }
 
 .mascot-bubble {

@@ -9,7 +9,6 @@ export function Header({
       <div className="header-inner">
         <button className="brand-button" type="button" onClick={onNavigateHome}>
           <span className="brand-title">Calculadora Estatística</span>
-          <span className="brand-subtitle">Descritiva e Inferencial</span>
         </button>
         <nav className="header-nav" aria-label="Navegação principal">
           <button className="nav-button" type="button" onClick={onNavigateHome}>

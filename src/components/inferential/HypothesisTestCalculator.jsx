@@ -138,7 +138,7 @@ function getHelperText({ form, selectedOption }) {
     return 'Revise o teste T preenchido pelos dados públicos ou pelo fallback local.'
   }
   if (selectedOption === 'manual') {
-    return 'Cole sua amostra ou preencha os campos manualmente.'
+    return ''
   }
   if (form.mode === 'given-p-value') {
     return 'O exercício já informa o p-valor. A calculadora compara com α.'
@@ -319,6 +319,7 @@ export function HypothesisTestCalculator() {
     selectedPublicDatasetId,
     publicPeriodCount,
   )
+  const testHelperText = getHelperText({ form, selectedOption })
 
   const updateField = (field, value) => {
     setForm((current) => {
@@ -734,8 +735,7 @@ export function HypothesisTestCalculator() {
       <div className="page-section inferential-page">
         <div className="analysis-page-heading">
           <div>
-            <p className="eyebrow">INFERENCIAL</p>
-            <h1>Calculadora Estatística</h1>
+            <h1>Estatística Inferencial</h1>
             <p>Ambiente de análise para entrada de dados, configuração do teste e relatório do resultado.</p>
           </div>
         </div>
@@ -774,9 +774,9 @@ export function HypothesisTestCalculator() {
                       <span className="section-number">2</span>
                       <h2>Dados do teste</h2>
                     </div>
-                    <p className="section-helper">
-                      {getHelperText({ form, selectedOption })}
-                    </p>
+                    {testHelperText ? (
+                      <p className="section-helper">{testHelperText}</p>
+                    ) : null}
                   </div>
                   <span className="soft-badge">
                     {getDataBadge({ form, selectedOption, publicDataStatus })}

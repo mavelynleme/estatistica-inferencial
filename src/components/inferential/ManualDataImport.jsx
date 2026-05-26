@@ -25,7 +25,7 @@ function summarize(values) {
 export function ManualDataImport({ onUseSample }) {
   const [rawValues, setRawValues] = useState('')
   const [summary, setSummary] = useState(null)
-  const [message, setMessage] = useState('Cole seus dados para calcular n, média e desvio padrão.')
+  const [message, setMessage] = useState('')
   const canUseSample = summary?.sampleSize > 1 && Number.isFinite(summary.sampleStandardDeviation)
 
   const calculateSummary = () => {
@@ -56,14 +56,13 @@ export function ManualDataImport({ onUseSample }) {
           Cole números separados por vírgula, ponto e vírgula, espaço ou quebra
           de linha.
         </p>
-        <label htmlFor="manualValues">Meus dados</label>
         <textarea
           id="manualValues"
           value={rawValues}
           onChange={(event) => {
             setRawValues(event.target.value)
             setSummary(null)
-            setMessage('Cole seus dados para calcular n, média e desvio padrão.')
+            setMessage('')
           }}
           placeholder="Ex.: 5,1; 4,8; 5,0; 5,3"
         />
@@ -78,28 +77,28 @@ export function ManualDataImport({ onUseSample }) {
         </span>
         {message ? <p className="status-text">{message}</p> : null}
 
-        {summary ? (
-          <dl className="data-list">
-            <div className="data-row">
-              <dt>n</dt>
-              <dd>
-                <strong>{summary.sampleSize}</strong>
-              </dd>
-            </div>
-            <div className="data-row">
-              <dt>Média</dt>
-              <dd>
-                <strong>{formatNumber(summary.sampleMean, 6)}</strong>
-              </dd>
-            </div>
-            <div className="data-row">
-              <dt>Desvio padrão</dt>
-              <dd>
-                <strong>{formatNumber(summary.sampleStandardDeviation, 6)}</strong>
-              </dd>
-            </div>
-          </dl>
-        ) : null}
+        <dl className="data-list">
+          <div className="data-row">
+            <dt>n</dt>
+            <dd>
+              <strong>{summary ? summary.sampleSize : '—'}</strong>
+            </dd>
+          </div>
+          <div className="data-row">
+            <dt>Média</dt>
+            <dd>
+              <strong>{summary ? formatNumber(summary.sampleMean, 6) : '—'}</strong>
+            </dd>
+          </div>
+          <div className="data-row">
+            <dt>Desvio padrão</dt>
+            <dd>
+              <strong>
+                {summary ? formatNumber(summary.sampleStandardDeviation, 6) : '—'}
+              </strong>
+            </dd>
+          </div>
+        </dl>
 
         <button
           className="secondary-button"
