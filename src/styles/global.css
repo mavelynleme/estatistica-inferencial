@@ -443,11 +443,12 @@ button.primary,
   text-align: center;
 }
 
-.option-card h2 {
+.home-minimal .option-card h2 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.3;
+  font-size: clamp(1.2rem, 2.6vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1.18;
+  text-align: center;
 }
 
 .option-card p {
