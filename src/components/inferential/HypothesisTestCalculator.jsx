@@ -3,7 +3,6 @@ import { hypothesisExamples } from '../../data/hypothesisExamples'
 import { ExampleSelector } from './ExampleSelector'
 import { HypothesisResult } from './HypothesisResult'
 import { ManualDataImport } from './ManualDataImport'
-import { P2Compliance } from './P2Compliance'
 import {
   DEFAULT_IBGE_DATASET_ID,
   DEFAULT_PUBLIC_PERIOD_COUNT,
@@ -118,19 +117,6 @@ function getDefaultTypeI(form) {
 
 function getDefaultTypeII(form) {
   return `não rejeitar H₀ quando H₀ é falsa no contexto de ${form.context || 'o parâmetro analisado'}.`
-}
-
-function getDataBadge({ form, selectedOption, publicDataStatus }) {
-  if (selectedOption === 'manual') {
-    return form.sampleSize && form.sampleMean && form.sampleStandardDeviation
-      ? 'P-valor calculado'
-      : 'Aguardando dados'
-  }
-  if (selectedOption === 'ibge-ipca') {
-    if (publicDataStatus === 'fallback') return 'Fallback local'
-    return 'Dados públicos'
-  }
-  return form.mode === 'given-p-value' ? 'P-valor informado' : 'P-valor calculado'
 }
 
 function getHelperText({ form, selectedOption }) {
@@ -778,9 +764,6 @@ export function HypothesisTestCalculator() {
                       <p className="section-helper">{testHelperText}</p>
                     ) : null}
                   </div>
-                  <span className="soft-badge">
-                    {getDataBadge({ form, selectedOption, publicDataStatus })}
-                  </span>
                 </div>
 
                 {selectedOption === 'manual' ? (
@@ -834,7 +817,6 @@ export function HypothesisTestCalculator() {
             </form>
 
             <HypothesisResult result={result} />
-            <P2Compliance />
         </div>
       </div>
     </section>

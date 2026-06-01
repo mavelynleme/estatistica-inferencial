@@ -559,8 +559,7 @@ button.primary,
 
 .choice-card {
   display: grid;
-  gap: 6px;
-  min-height: 76px;
+  min-height: 62px;
   align-content: center;
   justify-items: start;
   border: 1px solid var(--border-soft);
@@ -594,7 +593,7 @@ button.primary,
 }
 
 .allocated-example-panel {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .helper-card {

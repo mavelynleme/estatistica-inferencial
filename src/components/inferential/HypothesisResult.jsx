@@ -42,7 +42,6 @@ export function HypothesisResult({ result }) {
             <span className="section-number">3</span>
             <h2>Resultado</h2>
           </div>
-          <span className="soft-badge">Aguardando cálculo</span>
         </div>
         <div className="empty-state">
           <p>Preencha os dados e clique em Calcular p-valor para gerar o relatório.</p>

@@ -72,9 +72,7 @@ export function ManualDataImport({ onUseSample }) {
       </div>
 
       <div className="manual-summary">
-        <span className="soft-badge">
-          {summary ? 'Resumo da amostra' : 'Aguardando dados'}
-        </span>
+        {summary ? <span className="soft-badge">Resumo da amostra</span> : null}
         {message ? <p className="status-text">{message}</p> : null}
 
         <dl className="data-list">
@@ -106,7 +104,7 @@ export function ManualDataImport({ onUseSample }) {
           disabled={!canUseSample}
           onClick={() => onUseSample(summary)}
         >
-          Usar no teste T
+          Aplicar teste T
         </button>
       </div>
     </div>

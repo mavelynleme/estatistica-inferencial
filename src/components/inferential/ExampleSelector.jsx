@@ -11,20 +11,14 @@ const choices = [
   {
     id: 'manual',
     title: 'Manual',
-    subtitle: 'Inserir amostra',
-    helper: 'Insira sua amostra para calcular o resumo estatístico.',
   },
   {
     id: 'ibge-ipca',
     title: 'IBGE',
-    subtitle: 'Dados públicos',
-    helper: 'Carregue dados públicos do IBGE/SIDRA, selecione os períodos e use a amostra no teste t.',
   },
   {
     id: 'allocated',
     title: 'Dados alocados',
-    subtitle: 'Exercícios prontos',
-    helper: 'Use exercícios já cadastrados, como Tarefa 8 e Aula 9, com p-valor informado.',
   },
 ]
 
@@ -76,10 +70,6 @@ export function ExampleSelector({
   )
   const isAllocatedSelected =
     selectedOption === 'allocated' || allocatedExampleIds.includes(selectedOption)
-  const selectedChoice =
-    choices.find((choice) =>
-      choice.id === (isAllocatedSelected ? 'allocated' : selectedOption),
-    ) || choices[0]
   const isIbgeSelected = selectedOption === 'ibge-ipca'
   const statusKey = isLoadingPublicData ? 'loading' : publicDataStatus || 'idle'
   const canUsePublicSummary = publicDataSummary?.n >= 2
@@ -110,12 +100,6 @@ export function ExampleSelector({
     if (example) onSelectExample(example)
   }
 
-  const allocatedBadge = selectedExample?.title?.startsWith('Aula 9')
-    ? 'Aula 9'
-    : selectedExample
-      ? 'Tarefa 8'
-      : null
-
   return (
     <section className="flow-section">
       <div className="flow-heading">
@@ -124,7 +108,6 @@ export function ExampleSelector({
             <span className="section-number">1</span>
             <h2>Entrada de Dados</h2>
           </div>
-          <p className="section-helper">Escolha como deseja iniciar</p>
         </div>
       </div>
 
@@ -141,31 +124,12 @@ export function ExampleSelector({
             onClick={() => selectChoice(choice.id)}
           >
             <strong>{choice.title}</strong>
-            <span>{choice.subtitle}</span>
           </button>
         ))}
       </div>
 
+      {isAllocatedSelected || isIbgeSelected ? (
       <div className="helper-card compact-helper">
-        <div className="example-meta">
-          {isIbgeSelected ? (
-            <>
-              <span className="soft-badge">Dados públicos</span>
-              <span className="soft-badge">{publicStatusLabels[statusKey]}</span>
-            </>
-          ) : null}
-          {isAllocatedSelected ? (
-            <>
-              <span className="soft-badge">Dados alocados</span>
-              <span className="soft-badge">P-valor informado</span>
-              {allocatedBadge ? (
-                <span className="soft-badge">{allocatedBadge}</span>
-              ) : null}
-            </>
-          ) : null}
-        </div>
-        <p>{selectedChoice.helper}</p>
-
         {isAllocatedSelected ? (
           <div className="allocated-example-panel">
             <div className="field">
@@ -413,13 +377,14 @@ export function ExampleSelector({
                   disabled={selectedPeriodCount < 2}
                   onClick={onUseSelectedPublicData}
                 >
-                  Aplicar ao teste
+                  Aplicar teste T
                 </button>
               </>
             ) : null}
           </div>
         ) : null}
       </div>
+      ) : null}
     </section>
   )
 }
