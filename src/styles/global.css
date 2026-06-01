@@ -355,10 +355,13 @@ button.primary,
 }
 
 .home-minimal .option-grid.minimal-options {
-  max-width: 860px;
+  max-width: 980px;
   margin: 0 auto;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 360px));
+  justify-content: center;
   justify-items: center;
+  gap: 28px;
+  padding: 0 12px;
 }
 
 .form-grid,
@@ -417,12 +420,16 @@ button.primary,
   padding: 24px;
 }
 
-.option-card {
-  display: grid;
+.home-minimal .option-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 18px;
-  min-height: 250px;
-  align-content: start;
-  justify-items: center;
+  min-height: 320px;
+  width: 360px;
+  padding: 28px;
+  box-sizing: border-box;
   text-align: center;
 }
 
@@ -436,9 +443,13 @@ button.primary,
   margin-bottom: 8px;
 }
 
-.option-card .primary-button {
-  width: fit-content;
-  margin-inline: auto;
+.home-minimal .option-card .primary-button {
+  min-width: 160px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 0.98rem;
+  display: inline-block;
+  margin: 0 auto;
 }
 
 .card p,
