@@ -3,6 +3,7 @@ export function HomePage({ onOpenDescriptive, onOpenInferential }) {
     <section className="home-minimal">
       <div className="page-section">
         <div className="home-heading">
+          <div className="home-mascot" aria-hidden="true">🦖</div>
           <div className="home-title-row">
             <h1>Calculadora Estatística</h1>
           </div>
