@@ -15,13 +15,15 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Header
-        activeView={view}
-        showNavigation={view !== 'home'}
-        onNavigateHome={() => setView('home')}
-        onNavigateInferential={() => setView('inferential')}
-        onOpenDescriptive={openDescriptiveCalculator}
-      />
+      {view !== 'home' ? (
+        <Header
+          activeView={view}
+          showNavigation={true}
+          onNavigateHome={() => setView('home')}
+          onNavigateInferential={() => setView('inferential')}
+          onOpenDescriptive={openDescriptiveCalculator}
+        />
+      ) : null}
       <main>
         {view === 'home' ? (
           <HomePage
