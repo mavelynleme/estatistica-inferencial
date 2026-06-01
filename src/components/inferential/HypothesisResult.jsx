@@ -71,7 +71,6 @@ export function HypothesisResult({ result }) {
         <header className="report-header">
           <div>
             <p className="eyebrow">RELATÓRIO ESTATÍSTICO</p>
-            <h3>Relatório Estatístico</h3>
           </div>
           <span className={`decision-pill ${decisionClass}`}>
             {result.decision.label}

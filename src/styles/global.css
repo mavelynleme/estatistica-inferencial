@@ -1006,11 +1006,6 @@ select option {
   padding-bottom: 14px;
 }
 
-.report-header h3 {
-  margin: 0;
-  font-size: 1.25rem;
-}
-
 .report-summary {
   display: grid;
   gap: 14px;
