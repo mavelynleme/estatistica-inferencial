@@ -1,10 +1,12 @@
+import dinoMascot from '../../assets/dino-mascot.svg'
+
 export function HomePage({ onOpenDescriptive, onOpenInferential }) {
   return (
     <section className="home-minimal">
       <div className="page-section">
         <div className="home-heading">
           <img 
-            src="/favicon.svg" 
+            src={dinoMascot}
             alt="Mascote dinossauro" 
             className="home-mascot-image"
             width="100"
