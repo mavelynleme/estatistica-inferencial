@@ -230,6 +230,15 @@ button.primary,
 .home-minimal {
   display: grid;
   align-items: center;
+  justify-items: center;
+}
+
+.home-minimal .page-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: 48px 0;
 }
 
 .home-heading {
@@ -344,9 +353,11 @@ button.primary,
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.minimal-options {
+.home-minimal .option-grid.minimal-options {
   max-width: 860px;
   margin: 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  justify-items: center;
 }
 
 .form-grid,
@@ -407,9 +418,11 @@ button.primary,
 
 .option-card {
   display: grid;
-  gap: 12px;
+  gap: 18px;
   min-height: 250px;
   align-content: start;
+  justify-items: center;
+  text-align: center;
 }
 
 .option-card h2 {
@@ -424,7 +437,7 @@ button.primary,
 
 .option-card .primary-button {
   width: fit-content;
-  align-self: end;
+  margin-inline: auto;
 }
 
 .card p,
