@@ -255,7 +255,8 @@ button.primary,
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
+  margin-top: 8px;
 }
 
 .home-title-row h1 {
@@ -273,6 +274,12 @@ button.primary,
   box-shadow: 0 14px 26px rgba(0, 0, 0, 0.22);
   font-size: 2.3rem;
   margin-bottom: 18px;
+}
+
+.home-mascot-image {
+  display: block;
+  margin: 0 auto 24px;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.18));
 }
 
 .home-heading h1,
@@ -357,10 +364,10 @@ button.primary,
 .home-minimal .option-grid.minimal-options {
   max-width: 980px;
   margin: 0 auto;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 360px));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 380px));
   justify-content: center;
   justify-items: center;
-  gap: 28px;
+  gap: 32px;
   padding: 0 12px;
 }
 
@@ -425,10 +432,10 @@ button.primary,
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: 18px;
-  min-height: 320px;
-  width: 360px;
-  padding: 28px;
+  gap: 22px;
+  min-height: 280px;
+  width: 380px;
+  padding: 32px 28px;
   box-sizing: border-box;
   text-align: center;
 }
@@ -444,12 +451,14 @@ button.primary,
 }
 
 .home-minimal .option-card .primary-button {
-  min-width: 160px;
-  padding: 12px 20px;
-  border-radius: 10px;
-  font-size: 0.98rem;
+  min-width: 140px;
+  padding: 11px 24px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
   display: inline-block;
   margin: 0 auto;
+  margin-top: 8px;
 }
 
 .card p,
