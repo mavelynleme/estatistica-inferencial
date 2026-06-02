@@ -13,7 +13,11 @@ export function Header({
         </button>
         {showNavigation ? (
           <nav className="header-nav" aria-label="Navegação principal">
-            <button className="nav-button" type="button" onClick={onNavigateHome}>
+            <button
+              className={`nav-button ${activeView === 'home' ? 'active' : ''}`}
+              type="button"
+              onClick={onNavigateHome}
+            >
               Home
             </button>
             <button className="nav-button" type="button" onClick={onOpenDescriptive}>
