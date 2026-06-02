@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import dinoMascot from '../../assets/dino-mascot.svg'
 import { hypothesisExamples } from '../../data/hypothesisExamples'
 import { ExampleSelector } from './ExampleSelector'
 import { HypothesisResult } from './HypothesisResult'
@@ -719,10 +720,16 @@ export function HypothesisTestCalculator() {
   return (
     <section className="inferential-minimal">
       <div className="page-section inferential-page">
-        <div className="analysis-page-heading">
-          <div>
+        <div className="analysis-page-heading inferential-title-heading">
+          <img
+            src={dinoMascot}
+            alt="Mascote dinossauro"
+            className="inferential-title-mascot"
+            width="100"
+            height="100"
+          />
+          <div className="inferential-title-row">
             <h1>Estatística Inferencial</h1>
-            <p>Ambiente de análise para entrada de dados, configuração do teste e relatório do resultado.</p>
           </div>
         </div>
 

@@ -334,6 +334,32 @@ button.primary,
   color: var(--text-soft);
 }
 
+.inferential-title-heading {
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 18px 0 24px;
+}
+
+.inferential-title-mascot {
+  display: block;
+  width: clamp(120px, 14vw, 170px);
+  height: auto;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.2));
+  object-fit: contain;
+}
+
+.inferential-title-row {
+  display: flex;
+  align-items: center;
+}
+
+.inferential-title-heading h1 {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.6rem);
+}
+
 .narrow-flow,
 .inferential-page {
   max-width: 1180px;
@@ -1364,6 +1390,17 @@ select option {
 
   .home-heading {
     margin-bottom: 8px;
+  }
+
+  .inferential-title-heading {
+    align-items: center;
+    flex-direction: row;
+    gap: 16px;
+    padding: 12px 0 18px;
+  }
+
+  .inferential-title-mascot {
+    width: clamp(88px, 28vw, 120px);
   }
 
   .home-minimal .option-grid.minimal-options {
