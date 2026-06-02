@@ -47,13 +47,15 @@ function App() {
 
   return (
     <div className="app-shell">
-      <Header
-        activeView={view}
-        showNavigation={true}
-        onNavigateHome={navigateHome}
-        onNavigateInferential={navigateInferential}
-        onOpenDescriptive={openDescriptiveCalculator}
-      />
+      {view !== 'home' ? (
+        <Header
+          activeView={view}
+          showNavigation={true}
+          onNavigateHome={navigateHome}
+          onNavigateInferential={navigateInferential}
+          onOpenDescriptive={openDescriptiveCalculator}
+        />
+      ) : null}
       <main>
         {view === 'home' ? (
           <HomePage

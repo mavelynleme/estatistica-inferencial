@@ -231,6 +231,7 @@ button.primary,
   display: grid;
   align-items: center;
   justify-items: center;
+  min-height: calc(100vh - 58px);
   padding: 28px 0 18px;
 }
 
