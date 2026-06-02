@@ -27,6 +27,7 @@ export function ExampleSelector({
   selectedOption,
   publicDataStatus,
   publicDataSummary,
+  selectedPublicSummary,
   isLoadingPublicData,
   publicDatasetOptions,
   selectedPublicDatasetId,
@@ -255,24 +256,28 @@ export function ExampleSelector({
 
                 <dl className="compact-summary">
                   <div>
-                    <dt>Períodos</dt>
-                    <dd>{publicDataSummary.periods.join(', ')}</dd>
-                  </div>
-                  <div>
-                    <dt>n carregado</dt>
-                    <dd>{publicDataSummary.n}</dd>
-                  </div>
-                  <div>
-                    <dt>Média carregada</dt>
+                    <dt>Períodos selecionados</dt>
                     <dd>
-                      {formatNumber(publicDataSummary.sampleMean, 6)}
+                      {selectedPublicSummary?.periods.length
+                        ? selectedPublicSummary.periods.join(', ')
+                        : 'Nenhum período selecionado'}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>n selecionado</dt>
+                    <dd>{selectedPublicSummary?.n ?? 0}</dd>
+                  </div>
+                  <div>
+                    <dt>Média selecionada</dt>
+                    <dd>
+                      {formatNumber(selectedPublicSummary?.sampleMean, 6)}
                       {publicDataSummary.unit}
                     </dd>
                   </div>
                   <div>
-                    <dt>Desvio padrão carregado</dt>
+                    <dt>Desvio padrão selecionado</dt>
                     <dd>
-                      {formatNumber(publicDataSummary.sampleStandardDeviation, 6)}
+                      {formatNumber(selectedPublicSummary?.sampleStandardDeviation, 6)}
                       {publicDataSummary.unit}
                     </dd>
                   </div>

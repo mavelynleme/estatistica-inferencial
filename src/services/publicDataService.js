@@ -83,7 +83,7 @@ export function parseIbgeDatasetData(rawData) {
 
   return rows
     .map((row) => {
-      const period = parsePeriod(row?.D2C || row?.D3C || row?.periodo || row?.period)
+      const period = parsePeriod(row?.D3C || row?.D3N || row?.periodo || row?.period)
       const value = parseValue(row?.V || row?.valor || row?.value)
       return { period, value }
     })

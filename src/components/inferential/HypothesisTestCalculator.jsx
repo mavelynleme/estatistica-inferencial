@@ -301,6 +301,18 @@ export function HypothesisTestCalculator() {
   const [isLoadingPublicData, setIsLoadingPublicData] = useState(false)
   const publicDatasetOptions = getIbgePublicDatasetOptions()
   const testHelperText = getHelperText({ form, selectedOption })
+  const selectedPublicRows =
+    publicDataSummary?.values.filter((row) =>
+      selectedPublicPeriods.includes(row.period),
+    ) || []
+  const selectedPublicSummary = publicDataSummary
+    ? {
+        ...publicDataSummary,
+        periods: selectedPublicRows.map((row) => row.period),
+        values: selectedPublicRows,
+        ...calculateSampleSummary(selectedPublicRows.map((row) => row.value)),
+      }
+    : null
 
   const updateField = (field, value) => {
     setForm((current) => {
@@ -727,6 +739,7 @@ export function HypothesisTestCalculator() {
               selectedOption={selectedOption}
               publicDataStatus={publicDataStatus}
               publicDataSummary={publicDataSummary}
+              selectedPublicSummary={selectedPublicSummary}
               isLoadingPublicData={isLoadingPublicData}
               publicDatasetOptions={publicDatasetOptions}
               selectedPublicDatasetId={selectedPublicDatasetId}
