@@ -22,22 +22,6 @@ const choices = [
   },
 ]
 
-const publicStatusLabels = {
-  idle: 'Aguardando carregamento',
-  loading: 'Consultando IBGE...',
-  online: 'Dados carregados online',
-  fallback: 'Fallback local',
-  error: 'Erro ao carregar',
-}
-
-const publicStatusDescriptions = {
-  idle: 'Aguardando carregamento',
-  loading: 'Consultando IBGE...',
-  online: 'online',
-  fallback: 'fallback',
-  error: 'erro',
-}
-
 export function ExampleSelector({
   selectedExampleId,
   selectedOption,
@@ -48,7 +32,6 @@ export function ExampleSelector({
   selectedPublicDatasetId,
   selectedPublicPeriods,
   publicPeriodCount,
-  selectedPublicApiUrl,
   onLoadPublicData,
   onSelectExample,
   onSelectManual,
@@ -60,7 +43,6 @@ export function ExampleSelector({
   onSelectAllPublicPeriods,
   onClearPublicPeriodSelection,
   onUseSelectedPublicData,
-  onUseFallbackData,
 }) {
   const selectedExample = hypothesisExamples.find(
     (example) => example.id === selectedExampleId,
@@ -71,15 +53,14 @@ export function ExampleSelector({
   const isAllocatedSelected =
     selectedOption === 'allocated' || allocatedExampleIds.includes(selectedOption)
   const isIbgeSelected = selectedOption === 'ibge-ipca'
-  const statusKey = isLoadingPublicData ? 'loading' : publicDataStatus || 'idle'
   const canUsePublicSummary = publicDataSummary?.n >= 2
   const selectedPeriodCount = selectedPublicPeriods.length
   const selectedPublicDataset = publicDatasetOptions.find(
     (dataset) => dataset.id === selectedPublicDatasetId,
   )
-  const officialSourceUrl =
-    selectedPublicDataset?.sourceUrl || selectedPublicDataset?.officialPageUrl
-  const apiUrl = publicDataSummary?.apiUrl || selectedPublicApiUrl
+  const statusMessage = isLoadingPublicData
+    ? 'Carregando dados do IBGE...'
+    : publicDataSummary?.statusMessage || 'Aguardando carregamento'
 
   const selectChoice = (id) => {
     if (id === 'manual') {
@@ -205,15 +186,7 @@ export function ExampleSelector({
                 disabled={isLoadingPublicData}
                 onClick={onLoadPublicData}
               >
-                {isLoadingPublicData ? 'Carregando...' : 'Carregar dados do IBGE'}
-              </button>
-              <button
-                className="secondary-button"
-                type="button"
-                disabled={isLoadingPublicData}
-                onClick={onUseFallbackData}
-              >
-                Usar dados pré-carregados
+                Carregar dados do IBGE
               </button>
             </div>
             <p className="network-proof-helper">
@@ -221,20 +194,20 @@ export function ExampleSelector({
               Fetch/XHR e clique em Carregar dados do IBGE.
             </p>
 
-            {publicDataSummary?.statusMessage ? (
+            {isLoadingPublicData || publicDataSummary?.statusMessage ? (
               <p
                 className={`status-text ${
-                  publicDataSummary.dataStatus === 'online'
+                  publicDataSummary?.dataStatus === 'online'
                     ? 'success'
-                    : publicDataSummary.dataStatus === 'error'
+                    : publicDataSummary?.dataStatus === 'error'
                       ? 'error'
                       : 'warning'
                 }`}
               >
-                {publicDataSummary.statusMessage}
+                {statusMessage}
               </p>
             ) : (
-              <p className="status-text">Aguardando carregamento.</p>
+              <p className="status-text">{statusMessage}</p>
             )}
 
             {canUsePublicSummary ? (

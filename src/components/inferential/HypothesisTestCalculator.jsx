@@ -8,8 +8,6 @@ import {
   DEFAULT_IBGE_DATASET_ID,
   DEFAULT_PUBLIC_PERIOD_COUNT,
   calculateSampleSummary,
-  getIbgeDatasetApiUrl,
-  getIbgeDatasetFallbackSummary,
   getIbgeDatasetSummaryWithFallback,
   getIbgePublicDatasetOptions,
 } from '../../services/publicDataService'
@@ -302,10 +300,6 @@ export function HypothesisTestCalculator() {
   )
   const [isLoadingPublicData, setIsLoadingPublicData] = useState(false)
   const publicDatasetOptions = getIbgePublicDatasetOptions()
-  const selectedPublicApiUrl = getIbgeDatasetApiUrl(
-    selectedPublicDatasetId,
-    publicPeriodCount,
-  )
   const testHelperText = getHelperText({ form, selectedOption })
 
   const updateField = (field, value) => {
@@ -488,12 +482,6 @@ export function HypothesisTestCalculator() {
     )
     storeLoadedPublicData(summary)
     setIsLoadingPublicData(false)
-  }
-
-  const useFallbackData = () => {
-    storeLoadedPublicData(
-      getIbgeDatasetFallbackSummary(selectedPublicDatasetId, publicPeriodCount),
-    )
   }
 
   const togglePublicPeriod = (period) => {
@@ -744,7 +732,6 @@ export function HypothesisTestCalculator() {
               selectedPublicDatasetId={selectedPublicDatasetId}
               selectedPublicPeriods={selectedPublicPeriods}
               publicPeriodCount={publicPeriodCount}
-              selectedPublicApiUrl={selectedPublicApiUrl}
               onLoadPublicData={loadPublicData}
               onSelectExample={applyExample}
               onSelectManual={selectManual}
@@ -756,7 +743,6 @@ export function HypothesisTestCalculator() {
               onSelectAllPublicPeriods={selectAllPublicPeriods}
               onClearPublicPeriodSelection={clearPublicPeriodSelection}
               onUseSelectedPublicData={useSelectedPublicData}
-              onUseFallbackData={useFallbackData}
             />
 
             <form onSubmit={calculate}>

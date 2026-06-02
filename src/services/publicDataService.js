@@ -206,7 +206,7 @@ export async function getIbgeDatasetSummaryWithFallback(
       rows,
       dataset,
       'online',
-      'Dados carregados online.',
+      'Dados carregados online do IBGE/SIDRA',
       periodCount,
     )
   } catch {
@@ -216,7 +216,7 @@ export async function getIbgeDatasetSummaryWithFallback(
     return {
       ...fallbackSummary,
       dataStatus: 'fallback',
-      statusMessage: 'Fallback local.',
+      statusMessage: 'Não foi possível acessar o IBGE. Usando dados públicos pré-carregados.',
     }
   }
 }
